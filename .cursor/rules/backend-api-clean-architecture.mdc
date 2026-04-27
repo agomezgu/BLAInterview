@@ -160,6 +160,14 @@ Prefer end-to-end vertical slices over building all repositories, all endpoints,
 - Remove dead abstractions.
 - Do not introduce patterns unless they solve a real boundary or complexity problem.
 
+## Backend coding standards
+
+- Apply SOLID pragmatically: keep responsibilities focused, depend on abstractions at architectural boundaries, and prefer extension over risky modification when behavior is already stable.
+- Apply DRY within a clear boundary; do not create shared abstractions across unrelated use cases just because code looks similar.
+- Apply YAGNI by implementing only the behavior required by the current use case, tests, or accepted requirement.
+- Before adding a new abstraction, service, base class, helper, or generic pattern, verify it reduces real duplication or protects an actual boundary.
+- Prefer simple, explicit code over speculative flexibility.
+
 ## Decision rules for code generation
 
 When generating code:
