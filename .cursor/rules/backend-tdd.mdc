@@ -1,0 +1,34 @@
+---
+description: Backend TDD practices based on Dennis Doomen's testing guidance
+globs: BE/**/*
+alwaysApply: false
+---
+
+# Backend TDD Rules
+
+Follow these practices when working in the .NET backend:
+
+- Start designing responsibilities before writing the first test, then use tests to drive the design further.
+- Organize code by functionalities or capabilities, not by technical type alone.
+- Treat adjacent folders as separate boundaries and align test scope with those boundaries.
+- Use the Dependency Inversion Principle to decouple boundaries.
+- Apply DRY within boundaries, but avoid abstractions that hide important test behavior.
+- Test the real surface area of the capability or API.
+- Sometimes testing smaller is fine, especially for reusable logic.
+- Test reusable components separately, but test implementation details through a bigger public scope.
+- It is fine for tests to include the database when that is the real boundary being specified.
+- Do not spend effort labeling tests as unit versus integration; make the scope and purpose clear.
+- Clarify Arrange, Act, Assert, but use a different readable style when it better serves the test.
+- Write tests like production code and let them serve as documentation.
+- It is fine to inject concrete classes inside a boundary.
+- Use mocks between boundaries, but avoid mocks inside the boundary under test.
+- Do not return mocks from mocks.
+- Hide setup details that are not important for the specific test.
+- Ensure each test fails or succeeds for the right reason.
+- Prefer inline literal strings and numbers over constants in tests.
+- Do not use production code to calculate expected assertion values.
+- Assert only what is relevant for the specific test case.
+- Avoid debugger hell by keeping tests readable, focused, and explicit.
+- Postfix test classes with `Specs` to emphasize specifications.
+- Group specs by API or purpose using nested classes when useful.
+- Use short, fact-based test names.

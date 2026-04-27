@@ -1,0 +1,200 @@
+---
+description: Enforce Clean Architecture for the .NET backend API under BE.
+globs: BE/**/*
+alwaysApply: false
+---
+# Clean Architecture
+
+You are working in a codebase that follows Clean Architecture.
+
+Your default goal is to produce maintainable, testable, feature-oriented code with strict architectural boundaries. Optimize for clarity, separation of concerns, and low coupling over short-term convenience.
+
+## Core principles
+
+- Keep dependencies pointing inward.
+- Protect the domain from frameworks, UI, persistence, and vendor SDKs.
+- Implement features as vertical slices around use cases, not around technical layers alone.
+- Prefer explicit boundaries and mapping over leaking internal models across layers.
+- Make the simplest change that preserves architecture.
+- If a requested change would break the architecture, propose the correct location and shape before implementing.
+
+## Backend architecture (.NET)
+
+Use these logical layers:
+
+### Domain
+Contains:
+- entities
+- value objects
+- domain services
+- domain events
+- business invariants and rules
+
+Rules:
+- must not depend on ASP.NET Core, EF Core, HTTP, SQL, cloud SDKs, or external services
+- must not contain persistence annotations or transport concerns
+- should model business language precisely
+- should protect invariants through constructors/factories/methods, not controller logic
+
+### Application
+Contains:
+- use cases
+- commands and queries
+- handlers/services for orchestration
+- interfaces for repositories, gateways, clocks, identity, messaging, file storage, etc.
+- DTOs for application boundaries
+- validation of requests/use cases
+
+Rules:
+- orchestrates domain behavior but does not own infrastructure details
+- depends only on Domain abstractions and contracts
+- must not contain SQL, EF Core queries, HTTP calls, or framework-specific code
+- one use case per command/query/handler when practical
+- prefer explicit request/response models
+
+### Infrastructure
+Contains:
+- EF Core DbContext and configurations
+- repository implementations
+- integrations with external APIs
+- email, queues, storage, caching, auth provider adapters
+
+Rules:
+- implements interfaces defined by Application
+- must not contain business decisions that belong in Domain or Application
+- keep framework and vendor code here
+- map persistence models carefully if needed; do not leak infrastructure types upward
+
+### API / Presentation
+Contains:
+- endpoints/controllers
+- request/response contracts
+- auth/authz wiring
+- middleware registration
+- OpenAPI wiring
+- composition root / dependency injection setup
+
+Rules:
+- keep endpoints thin
+- do not place business rules in controllers/endpoints
+- validate input, call a use case, map result, return HTTP response
+- do not access DbContext directly from endpoints unless explicitly allowed by an established pattern
+
+## Dependency rule
+
+Allowed dependencies:
+
+- API -> Application
+- Infrastructure -> Application
+- Application -> Domain
+- Domain -> nothing
+
+Disallowed dependencies:
+
+- Domain -> Infrastructure
+- Domain -> API
+- Application -> Infrastructure concrete classes
+- API contracts -> direct reuse of domain entities when it couples transport to core business models
+
+## Preferred backend patterns
+
+- Implement work by use case, not by generic service accumulation.
+- Prefer explicit commands/queries over large multi-purpose service classes.
+- Keep repository contracts in Application, implementations in Infrastructure.
+- Keep transaction boundaries explicit.
+- Use domain events only when they simplify the model; do not introduce them mechanically.
+- Favor composition over inheritance.
+- Prefer clear naming from the business domain.
+- Prefer immutable DTOs/records where appropriate.
+- Fail fast on invalid state.
+
+## Anti-patterns to avoid in backend code
+
+Do not:
+- put business logic in controllers/endpoints
+- put business logic in EF configurations or repositories
+- return EF entities directly from the API
+- inject DbContext into Application or Domain
+- use a single giant `Service` class per module
+- create an anemic domain model if business rules clearly belong in the domain
+- bypass interfaces just for convenience
+- mix command and query responsibilities in the same flow without reason
+- add infrastructure references to Domain/Application
+
+## Boundary and contract rules
+
+- Backend domain models are not API contracts.
+- API request/response models are not persistence models.
+- Always map across boundaries when concepts differ.
+- Use explicit names:
+  - `Order` for domain entity
+  - `CreateOrderCommand` for application request
+  - `CreateOrderRequest` / `OrderResponse` for API contracts
+
+## Implementation strategy
+
+When adding a feature, work in this order:
+
+1. define the use case
+2. identify domain rules and invariants
+3. add Application contracts and handler/service
+4. implement Infrastructure adapters
+5. expose API endpoint
+6. add or update tests
+
+Prefer end-to-end vertical slices over building all repositories, all endpoints, or all screens first.
+
+## Testing expectations
+
+- Domain tests verify business rules and invariants.
+- Application tests verify use-case behavior and orchestration.
+- Integration tests verify infrastructure and API wiring.
+- Mock infrastructure at the Application boundary, not inside Domain.
+
+## Naming and code quality
+
+- Use business language, not vague utility names.
+- Avoid generic names like `Helper`, `Manager`, `Processor`, `Misc`, `Common`, or `Utils` unless truly justified.
+- Keep files focused on one primary concept.
+- Prefer small, cohesive classes/functions.
+- Remove dead abstractions.
+- Do not introduce patterns unless they solve a real boundary or complexity problem.
+
+## Decision rules for code generation
+
+When generating code:
+- choose the layer first, then write the code
+- place code in the narrowest valid scope
+- preserve existing boundaries and conventions
+- prefer extending an existing feature slice over creating cross-cutting shortcuts
+- when unsure between Domain and Application:
+  - put business invariants in Domain
+  - put orchestration and use-case flow in Application
+
+## Refactoring rules
+
+When refactoring:
+- improve boundaries before introducing new abstractions
+- remove direct infrastructure coupling from core layers
+- extract use cases from large services/controllers/components
+- preserve behavior with tests
+- avoid large speculative rewrites unless explicitly requested
+
+## Output expectations for AI-generated changes
+
+When making changes, prefer to:
+- explain which layer the change belongs to
+- create missing interfaces at the Application boundary
+- add mapping where a boundary is crossed
+- keep endpoint/controller changes minimal
+- suggest follow-up refactors only when they materially improve architectural integrity
+
+## Absolute prohibitions
+
+Never:
+- add framework dependencies to Domain
+- put persistence logic in Domain
+- put transport logic in Domain
+- bypass Application to call Infrastructure directly from API for business flows
+- expose database schema details through API contracts
+- collapse architectural layers for convenience without explicit instruction
