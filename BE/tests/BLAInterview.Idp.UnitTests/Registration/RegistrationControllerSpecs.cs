@@ -1,11 +1,28 @@
+using System.Net;
+using System.Net.Http.Json;
+using BLAInterview.Idp.Registration;
+using Microsoft.AspNetCore.Mvc.Testing;
+
 namespace BLAInterview.Idp.UnitTests.Registration;
 
-public class RegistrationControllerSpecs
+public class RegistrationControllerSpecs(WebApplicationFactory<Program> factory)
+    : IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly HttpClient _client = factory.CreateClient();
+
     [Fact]
-    public void RegistrationController_ReturnsValidationFailure_WhenNameIsMissing()
+    public async Task RegistrationController_ReturnsValidationFailure_WhenNameIsMissing()
     {
-        Assert.Fail("RED: BE-IDP-001-T001 not implemented yet.");
+        const string registrationRoute = "/connect/register";
+        const HttpStatusCode validationFailureStatusCode = HttpStatusCode.BadRequest;
+        var request = new RegisterUserRequest(
+            Name: "",
+            Email: "candidate@example.com",
+            Password: "Str0ngPassword!");
+
+        var response = await _client.PostAsJsonAsync(registrationRoute, request);
+
+        Assert.Equal(validationFailureStatusCode, response.StatusCode);
     }
 
     [Fact]

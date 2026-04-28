@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Duende.IdentityServer" Version="7.4.7" />
+    <PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.4.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.22" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
