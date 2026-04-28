@@ -1,3 +1,6 @@
+using BLAInterview.WebApi.Application.Abstractions;
+using BLAInterview.WebApi.Application.Tasks;
+
 namespace BLAInterview.WebApi.UnitTests.Application.Tasks;
 
 public class CreateTaskCommandHandlerSpecs
@@ -6,15 +9,16 @@ public class CreateTaskCommandHandlerSpecs
     public async Task CreateTaskCommandHandler_CreatesTask_WhenCommandHasTitleAndOwner()
     {
         // Arrange
-        var command = new BLAInterview.WebApi.Application.Tasks.CreateTaskCommand(
+        var command = new CreateTaskCommand(
             Title: "Prepare interview notes",
             OwnerId: "idp-user-123");
-        FluentValidation.IValidator<BLAInterview.WebApi.Application.Tasks.CreateTaskCommand> validator =
-            new BLAInterview.WebApi.Application.Tasks.CreateTaskCommandValidator();
-        var handler = new BLAInterview.WebApi.Application.Tasks.CreateTaskCommandHandler(validator);
+        FluentValidation.IValidator<CreateTaskCommand> validator =
+            new CreateTaskCommandValidator();
+        ICommandHandler<CreateTaskCommand, CreateTaskResult> handler =
+            new CreateTaskCommandHandler(validator);
 
         // Act
-        FluentResults.Result<BLAInterview.WebApi.Application.Tasks.CreateTaskResult> result =
+        FluentResults.Result<CreateTaskResult> result =
             await handler.HandleAsync(command, CancellationToken.None);
 
         // Assert

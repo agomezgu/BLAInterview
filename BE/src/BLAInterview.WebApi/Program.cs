@@ -1,4 +1,7 @@
 using System.Security.Claims;
+using BLAInterview.WebApi.Application.Abstractions;
+using BLAInterview.WebApi.Application.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 
@@ -27,6 +30,8 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 builder.Services.AddControllers();
+builder.Services.AddScoped<IValidator<CreateTaskCommand>, CreateTaskCommandValidator>();
+builder.Services.AddScoped<ICommandHandler<CreateTaskCommand, CreateTaskResult>, CreateTaskCommandHandler>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
