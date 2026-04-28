@@ -21,7 +21,7 @@ public sealed class TasksController (
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTask([FromBody] TaskDto request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto request, CancellationToken cancellationToken)
     {
         var command = new CreateTaskCommand(
             request.Title,

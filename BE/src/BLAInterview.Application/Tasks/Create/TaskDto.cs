@@ -1,3 +1,3 @@
 namespace BLAInterview.Application.Tasks.Create;
 
-public sealed record TaskDto(string Title);
+public sealed record CreateTaskDto(string Title);
