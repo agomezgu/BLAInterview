@@ -3,9 +3,26 @@ namespace BLAInterview.WebApi.UnitTests.Application.Tasks;
 public class CreateTaskCommandHandlerSpecs
 {
     [Fact]
-    public void CreateTaskCommandHandler_CreatesTask_WhenCommandHasTitleAndOwner()
+    public async Task CreateTaskCommandHandler_CreatesTask_WhenCommandHasTitleAndOwner()
     {
-        Assert.Fail("RED: BE-API-003-T001 not implemented yet.");
+        // Arrange
+        var command = new BLAInterview.WebApi.Application.Tasks.CreateTaskCommand(
+            Title: "Prepare interview notes",
+            OwnerId: "idp-user-123");
+        FluentValidation.IValidator<BLAInterview.WebApi.Application.Tasks.CreateTaskCommand> validator =
+            new BLAInterview.WebApi.Application.Tasks.CreateTaskCommandValidator();
+        var handler = new BLAInterview.WebApi.Application.Tasks.CreateTaskCommandHandler(validator);
+
+        // Act
+        FluentResults.Result<BLAInterview.WebApi.Application.Tasks.CreateTaskResult> result =
+            await handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Errors);
+        Assert.NotEqual(Guid.Empty, result.Value.Id);
+        Assert.Equal("Prepare interview notes", result.Value.Title);
+        Assert.Equal("idp-user-123", result.Value.OwnerId);
     }
 
     [Fact]
