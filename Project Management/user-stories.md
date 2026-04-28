@@ -28,19 +28,7 @@ Acceptance Criteria:
 
 Traceability: FR-001, FR-002, FR-032, FR-033.
 
-### BE-IDP-002: Reject Duplicate Email
-
-As the IDP server, I want to reject duplicate email addresses so that each user account has a unique login identifier.
-
-Acceptance Criteria:
-
-- Given an existing user email, when a registration request uses the same email, then the IDP rejects the request.
-- Given a duplicate email registration attempt, when the IDP responds, then it returns a validation failure.
-- Given a rejected duplicate registration, when the data store is checked, then no duplicate user record is created.
-
-Traceability: FR-003, FR-032, FR-033, FR-036.
-
-### BE-IDP-003: Create User Account
+### BE-IDP-002: Create User Account
 
 As a new user, I want the IDP to create my account after valid registration so that I can log in later.
 
@@ -52,6 +40,18 @@ Acceptance Criteria:
 - Given the account is created, when the IDP responds, then it does not return the password or password hash.
 
 Traceability: FR-001, FR-002, FR-004, FR-030, FR-036, FR-038.
+
+### BE-IDP-003: Reject Duplicate Email
+
+As the IDP server, I want to reject duplicate email addresses so that each user account has a unique login identifier.
+
+Acceptance Criteria:
+
+- Given an existing user email, when a registration request uses the same email, then the IDP rejects the request.
+- Given a duplicate email registration attempt, when the IDP responds, then it returns a validation failure.
+- Given a rejected duplicate registration, when the data store is checked, then no duplicate user record is created.
+
+Traceability: FR-003, FR-032, FR-033, FR-036.
 
 ### BE-IDP-004: Hash User Password
 
