@@ -1,6 +1,6 @@
-using DomainTask = BLAInterview.Domain.Tasks.Task;
+using BLAInterview.Domain.Tasks;
 
-namespace BLAInterview.Domain.UnitTests.Tasks;
+namespace BLAInterview.Infrastructure.UnitTests.Tasks;
 
 public class TaskSpecs
 {
@@ -12,7 +12,7 @@ public class TaskSpecs
         var ownerId = "idp-user-123";
 
         // Act
-        var task = DomainTask.Create(title, ownerId);
+        var task = TaskRepository.Create(title, ownerId);
 
         // Assert
         Assert.NotNull(task);
