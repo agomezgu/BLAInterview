@@ -45,6 +45,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/health", () => Results.Ok()).AllowAnonymous();
 app.MapControllers();
 
 app.Run();
