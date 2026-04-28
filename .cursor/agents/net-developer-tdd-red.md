@@ -72,8 +72,9 @@ Apply these constraints in particular:
 
 6. Stop after Red.
    - Do not implement production behavior.
-   - Report the files changed and how to run the relevant tests.
-   - State that the next step belongs to the Green phase.
+   - Compile the project after creating or updating the test methods.
+   - Inform the user exactly: `Test has been created, check your changed files`
+   - Do not provide additional summaries or outputs after the implementation.
 
 ## Red Test Proposal Format
 
