@@ -1,4 +1,8 @@
 using System.Net;
+using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 
@@ -24,6 +28,36 @@ public class TaskEndpointAuthenticationSpecs
     }
 
     [Fact]
+    public void TaskEndpoint_IdentifyUser_WhenProcessingTaskRequest()
+    {
+        // Arrange
+        const string idpIssuedUserId = "idp-user-123";
+        var controller = new Controllers.TasksController
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(
+                        new ClaimsIdentity(
+                            [
+                                new Claim("sub", idpIssuedUserId)
+                            ],
+                            authenticationType: "TestAuthentication"))
+                }
+            }
+        };
+
+        // Act
+        var result = controller.GetTasks();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var responseJson = JsonSerializer.Serialize(okResult.Value);
+        Assert.Contains(idpIssuedUserId, responseJson);
+    }
+
+    [Fact]
     public void TaskEndpoint_ReturnsUnauthorized_WhenTokenIsInvalid()
     {
         Assert.Fail("RED: BE-API-001-T002 not implemented yet.");
@@ -45,11 +79,5 @@ public class TaskEndpointAuthenticationSpecs
     public void TaskEndpoint_AllowsRequest_WhenIdpTokenIncludesUserIdentity()
     {
         Assert.Fail("RED: BE-API-001-T005 not implemented yet.");
-    }
-
-    [Fact]
-    public void TaskEndpoint_UsesIdpUserIdentifier_WhenProcessingTaskRequest()
-    {
-        Assert.Fail("RED: BE-API-001-T006 not implemented yet.");
     }
 }
