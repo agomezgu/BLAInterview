@@ -1,6 +1,5 @@
-using BLAInterview.WebApi.Application.Abstractions;
-using BLAInterview.WebApi.Application.Tasks;
-using FluentResults;
+using BLAInterview.Application.Abstractions;
+using BLAInterview.Application.Tasks.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,8 +8,8 @@ namespace BLAInterview.WebApi.Controllers;
 [ApiController]
 [Authorize]
 [Route("tasks")]
-public sealed class TasksController(
-    ICommandHandler<CreateTaskCommand, CreateTaskResult> createTaskHandler) : ControllerBase
+public sealed class TasksController (
+    ICommandHandler<CreateTaskCommand, int> createTaskHandler) : BLABaseController
 {
     [HttpGet]
     public IActionResult GetTasks(CancellationToken cancellationToken)
@@ -18,44 +17,22 @@ public sealed class TasksController(
         
         //var userId = User.FindFirst("sub")?.Value;
 
-        return Ok(new TaskListResponse("Claim must Be Added", Array.Empty<object>()));
+        return Ok(new { userId = "Claim must Be Added", tasks = Array.Empty<object>() });
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTask([FromBody] CreateTaskRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateTask([FromBody] TaskDto request, CancellationToken cancellationToken)
     {
         var command = new CreateTaskCommand(
             request.Title,
-            User.FindFirst("sub")?.Value ?? string.Empty);
+            AuthenticatedUserId);
         var result = await createTaskHandler.HandleAsync(command, cancellationToken);
 
         if (result.IsFailed)
         {
-            return BadRequest(new TaskCreationFailureResponse(
-                result.Errors.Select(error => new TaskCreationErrorResponse(
-                    GetErrorCode(error),
-                    error.Message)).ToArray()));
+            return BadRequest(result.Errors.Select(error => error.Message));
         }
 
-        var task = result.Value;
-
-        return Created($"/tasks/{task.Id}", new TaskCreationResponse(task.Id, task.Title, task.OwnerId));
-    }
-
-    private sealed record TaskListResponse(string? UserId, object[] Tasks);
-
-    public sealed record CreateTaskRequest(string Title);
-
-    public sealed record TaskCreationResponse(Guid Id, string Title, string OwnerId);
-
-    private sealed record TaskCreationFailureResponse(TaskCreationErrorResponse[] Errors);
-
-    private sealed record TaskCreationErrorResponse(string Code, string Message);
-
-    private static string GetErrorCode(IError error)
-    {
-        return error.Metadata.TryGetValue("Code", out var code)
-            ? code?.ToString() ?? "TASK_CREATION_FAILED"
-            : "TASK_CREATION_FAILED";
+        return Created($"/tasks/{result.Value}", new { taskId = result.Value });
     }
 }

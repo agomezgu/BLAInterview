@@ -1,5 +1,6 @@
-using BLAInterview.WebApi.Application.Abstractions;
-using BLAInterview.WebApi.Application.Tasks;
+using BLAInterview.Application.Abstractions;
+using BLAInterview.Application.Tasks;
+using BLAInterview.Application.Tasks.Create;
 
 namespace BLAInterview.WebApi.UnitTests.Application.Tasks;
 
@@ -14,19 +15,18 @@ public class CreateTaskCommandHandlerSpecs
             OwnerId: "idp-user-123");
         FluentValidation.IValidator<CreateTaskCommand> validator =
             new CreateTaskCommandValidator();
-        ICommandHandler<CreateTaskCommand, CreateTaskResult> handler =
+        ICommandHandler<CreateTaskCommand, int> handler =
             new CreateTaskCommandHandler(validator);
 
         // Act
-        FluentResults.Result<CreateTaskResult> result =
+        FluentResults.Result<int> result =
             await handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Empty(result.Errors);
-        Assert.NotEqual(Guid.Empty, result.Value.Id);
-        Assert.Equal("Prepare interview notes", result.Value.Title);
-        Assert.Equal("idp-user-123", result.Value.OwnerId);
+        Assert.NotEqual(0, result.Value);
+        
     }
 
     [Fact]

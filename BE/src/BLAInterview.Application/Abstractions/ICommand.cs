@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace BLAInterview.WebApi.Application.Abstractions;
+namespace BLAInterview.Application.Abstractions;
 
 public interface ICommand<TResult>
 {
