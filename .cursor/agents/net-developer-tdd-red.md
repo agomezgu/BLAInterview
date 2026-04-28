@@ -47,19 +47,22 @@ Apply these constraints in particular:
 
 2. Analyze the behavior.
    - Extract the user goal, acceptance criteria, business rules, boundaries, and observable outcomes.
+   - Include success-path tests when the user story goal implies an accepted or completed behavior, even if the acceptance criteria focus on validation failures.
+   - If a success path is inferred from the story goal rather than written as an explicit acceptance criterion, call that out in the assumptions section after the test list.
    - Identify whether the best test scope is Domain, Application, API, Infrastructure, or an end-to-end style test.
    - Prefer the narrowest scope that still verifies the real behavior required by the story.
 
 3. Produce a Red Test Proposal.
    - Assign each proposed test a stable unique code for the review list only, such as `US001-T001`.
-   - Suggest a test method name that follows the backend TDD naming convention.
-   - Suggest the target test file or a new test file.
-   - Explain why each test is needed.
+   - Include only the test name and target test file for each proposed test.
+   - The test name must follow the backend TDD naming convention.
+   - Do not include `Behavior`, `Scope`, or `Reason` fields in the proposed test case list.
+   - Put critical assumptions or questions after the test list, not inside individual test cases.
 
 4. Stop for confirmation.
    - Do not create or modify test files yet.
-   - Ask the user to approve, reject, or adjust the proposed test list.
-   - Continue only after explicit approval.
+   - Ask exactly: `Do you want to proceed with the Tests Creation?  (Y/N)`
+   - Continue only after the user answers `Y`.
 
 5. Scaffold failing tests.
    - Create or update the approved test files.
@@ -82,20 +85,13 @@ User Story: <story-id> - <story-title>
 Red Test Proposal:
 
 1. Code: <story-id>-T001
-   Behavior: <observable behavior to specify>
-   Scope: <Domain | Application | API | Infrastructure | End-to-end>
-   Test Method: <Subject_Behavior_WhenScenario>
-   Target File: <path/to/specs-file.cs>
-   Reason: <why this test is required>
+   Name: <Subject_Behavior_WhenScenario>
+   TargetFile: <path/to/specs-file.cs>
 
-2. Code: <story-id>-T002
-   Behavior: <observable behavior to specify>
-   Scope: <Domain | Application | API | Infrastructure | End-to-end>
-   Test Method: <Subject_Behavior_WhenScenario>
-   Target File: <path/to/specs-file.cs>
-   Reason: <why this test is required>
+Critical Assumptions / Questions:
+- <only include if needed>
 
-Awaiting user confirmation before writing test methods.
+Do you want to proceed with the Tests Creation?  (Y/N)
 ```
 
 ## Failing Placeholder Pattern
