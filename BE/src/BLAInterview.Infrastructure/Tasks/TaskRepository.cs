@@ -1,37 +1,23 @@
-using System.Data;
+using BLAInterview.Domain.Tasks;
+using BLAInterview.Infrastructure.Abstractions;
+using Npgsql;
 
-namespace BLAInterview.Domain.Tasks;
+namespace BLAInterview.Infrastructure.Tasks;
 
-public static class TaskRepository
+
+public class TaskRepository : ITaskRepository
 {
-    private static readonly object Gate = new();
-    private static readonly DataTable Tasks = CreateTasksTable();
+    private readonly NpgsqlDataSource _dataSource;
 
-    public static Task Create(string title, string ownerId)
+    public TaskRepository(NpgsqlDataSource dataSource)
     {
-        var task = Task.Create(title, ownerId);
-
-        lock (Gate)
-        {
-            var row = Tasks.NewRow();
-            row["Id"] = task.Id;
-            row["Title"] = task.Title;
-            row["OwnerId"] = task.OwnerId;
-            row["Created"] = task.Created;
-            Tasks.Rows.Add(row);
-        }
-
-        return task;
+        _dataSource = dataSource;
     }
 
-    private static DataTable CreateTasksTable()
+    public async Task<Guid> CreateAsync(TaskEntity task)
     {
-        var table = new DataTable("Tasks");
-        table.Columns.Add("Id", typeof(Guid));
-        table.Columns.Add("Title", typeof(string));
-        table.Columns.Add("OwnerId", typeof(string));
-        table.Columns.Add("Created", typeof(DateTimeOffset));
-
-        return table;
+        throw new NotImplementedException();
     }
 }
+
+ 

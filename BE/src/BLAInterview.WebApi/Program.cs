@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using BLAInterview.Application.Abstractions;
-using BLAInterview.Application.Tasks;
 using BLAInterview.Application.Tasks.Create;
 using FluentValidation;
+using Npgsql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 
@@ -11,6 +11,16 @@ var authenticationSection = builder.Configuration.GetSection("Authentication");
 var apiAudience = authenticationSection["Audience"] ?? "bla-interview-api";
 
 // Add services to the container.
+
+var connectionString =
+    builder.Configuration.GetConnectionString("MainDb")
+    ?? throw new InvalidOperationException("Connection string 'MainDb' not found.");
+
+builder.Services.AddSingleton(sp =>
+{
+    var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+    return dataSourceBuilder.Build();
+});
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

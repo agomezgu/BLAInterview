@@ -2,9 +2,9 @@ using BLAInterview.Domain.Common;
 
 namespace BLAInterview.Domain.Tasks;
 
-public sealed class Task : BaseAuditableEntity
+public sealed class TaskEntity : BaseAuditableEntity
 {
-    private Task(string title, string ownerId)
+    private TaskEntity(string title, string ownerId)
     {
         Id = Guid.NewGuid();
         Title = title;
@@ -13,7 +13,7 @@ public sealed class Task : BaseAuditableEntity
         CreatedBy = ownerId;
     }
 
-    public static Task Create(string title, string ownerId) => new(title, ownerId);
+    public static TaskEntity Create(string title, string ownerId) => new(title, ownerId);
 
     public string Title { get; }
 

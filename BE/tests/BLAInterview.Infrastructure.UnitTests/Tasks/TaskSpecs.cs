@@ -1,4 +1,4 @@
-using BLAInterview.Domain.Tasks;
+using BLAInterview.Infrastructure.Tasks;
 
 namespace BLAInterview.Infrastructure.UnitTests.Tasks;
 
