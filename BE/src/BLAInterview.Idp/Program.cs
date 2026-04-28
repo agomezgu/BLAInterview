@@ -66,6 +66,11 @@ static void SeedIdentityServerConfiguration(WebApplication app)
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
 
+    if (!context.ApiResources.Any())
+    {
+        context.ApiResources.AddRange(Config.ApiResources.Select(apiResource => apiResource.ToEntity()));
+    }
+
     if (!context.ApiScopes.Any())
     {
         context.ApiScopes.AddRange(Config.ApiScopes.Select(apiScope => apiScope.ToEntity()));

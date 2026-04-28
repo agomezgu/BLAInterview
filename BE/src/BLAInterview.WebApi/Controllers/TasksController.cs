@@ -9,11 +9,12 @@ namespace BLAInterview.WebApi.Controllers;
 public sealed class TasksController : ControllerBase
 {
     [HttpGet]
-    public IActionResult GetTasks()
+    public IActionResult GetTasks(CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst("sub")?.Value;
+        
+        //var userId = User.FindFirst("sub")?.Value;
 
-        return Ok(new TaskListResponse(userId, Array.Empty<object>()));
+        return Ok(new TaskListResponse("Claim must Be Added", Array.Empty<object>()));
     }
 
     private sealed record TaskListResponse(string? UserId, object[] Tasks);
