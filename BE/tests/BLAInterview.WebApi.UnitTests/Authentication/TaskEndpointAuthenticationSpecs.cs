@@ -1,9 +1,12 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace BLAInterview.WebApi.UnitTests.Authentication;
@@ -14,13 +17,8 @@ public class TaskEndpointAuthenticationSpecs
     public async Task TaskEndpoint_ReturnsUnauthorized_WhenAuthenticationTokenIsMissing()
     {
         const string protectedTaskRoute = "/tasks";
-        var programType = Type.GetType("Program, BLAInterview.WebApi", throwOnError: true)!;
-        using var factory = (IDisposable)Activator.CreateInstance(
-            typeof(WebApplicationFactory<>).MakeGenericType(programType))!;
-        using var client = (HttpClient)factory
-            .GetType()
-            .GetMethod(nameof(WebApplicationFactory<object>.CreateClient), Type.EmptyTypes)!
-            .Invoke(factory, [])!;
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
 
         var response = await client.GetAsync(protectedTaskRoute);
 
@@ -28,33 +26,49 @@ public class TaskEndpointAuthenticationSpecs
     }
 
     [Fact]
-    public void TaskEndpoint_IdentifyUser_WhenProcessingTaskRequest()
+    public async Task TaskEndpoint_IdentifyUser_WhenProcessingTaskRequest()
     {
-        // Arrange
         const string idpIssuedUserId = "idp-user-123";
-        var controller = new Controllers.TasksController
-        {
-            ControllerContext = new ControllerContext
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("test-signing-key-with-enough-length"));
+        using var factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
-                HttpContext = new DefaultHttpContext
+                services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
-                    User = new ClaimsPrincipal(
-                        new ClaimsIdentity(
-                            [
-                                new Claim("sub", idpIssuedUserId)
-                            ],
-                            authenticationType: "TestAuthentication"))
-                }
-            }
-        };
+                    options.MapInboundClaims = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = "https://idp.test",
+                        ValidateAudience = true,
+                        ValidAudience = "bla-interview-api",
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = signingKey,
+                        ValidateLifetime = true
+                    };
+                });
+            }));
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            JwtBearerDefaults.AuthenticationScheme,
+            CreateBearerToken(idpIssuedUserId, signingKey));
 
-        // Act
-        var result = controller.GetTasks();
+        var response = await client.GetAsync("/tasks");
 
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var responseJson = JsonSerializer.Serialize(okResult.Value);
-        Assert.Contains(idpIssuedUserId, responseJson);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains(idpIssuedUserId, await response.Content.ReadAsStringAsync());
+    }
+
+    private static string CreateBearerToken(string userId, SecurityKey signingKey)
+    {
+        var token = new JwtSecurityToken(
+            issuer: "https://idp.test",
+            audience: "bla-interview-api",
+            claims: [new Claim("sub", userId)],
+            expires: DateTime.UtcNow.AddMinutes(5),
+            signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256));
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     [Fact]

@@ -11,6 +11,10 @@ public sealed class TasksController : ControllerBase
     [HttpGet]
     public IActionResult GetTasks()
     {
-        return Ok(Array.Empty<object>());
+        var userId = User.FindFirst("sub")?.Value;
+
+        return Ok(new TaskListResponse(userId, Array.Empty<object>()));
     }
+
+    private sealed record TaskListResponse(string? UserId, object[] Tasks);
 }
