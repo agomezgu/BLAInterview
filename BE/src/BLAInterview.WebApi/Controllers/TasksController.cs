@@ -1,4 +1,5 @@
 using BLAInterview.Application.Abstractions;
+using BLAInterview.Application.Extensions;
 using BLAInterview.Application.Tasks.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,9 +31,9 @@ public sealed class TasksController (
 
         if (result.IsFailed)
         {
-            return BadRequest(result.Errors.Select(error => error.Message));
+            return BadRequest(result.ToErrorDtos());
         }
 
-        return Created($"/tasks/{result.Value}", new { taskId = result.Value });
+        return Created($"/tasks/{result.Value}", new { taskId = result.Value, code = "TASK_CREATED" });
     }
 }
