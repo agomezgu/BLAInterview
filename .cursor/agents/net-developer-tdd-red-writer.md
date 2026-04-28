@@ -34,6 +34,7 @@ Apply these constraints in particular:
 - Use mocks between boundaries, but avoid mocks inside the boundary under test.
 - Ensure the test fails for the next useful Red reason.
 - Write tests as readable specifications.
+- Every written test body must include explicit `// Arrange`, `// Act`, and `// Assert` sections, in that order.
 - Keep the existing test method name based on the `subject -> behavior -> scenario` convention.
 - Do not include user-facing unique test codes in test method names.
 
@@ -73,6 +74,9 @@ If either value is missing, ask for the missing value and stop. Do not infer or 
    - Keep the method name unchanged.
    - Change the return type to `async Task` only when the test body needs `await`.
    - Replace `Assert.Fail("RED: ... not implemented yet.")` with real C# Arrange/Act/Assert code.
+   - Include explicit `// Arrange`, `// Act`, and `// Assert` comments inside the test method.
+   - Keep the sections in this exact order: Arrange, Act, Assert.
+   - Do not omit an empty section; if a section appears unnecessary, rewrite the test so the behavior is still expressed through all three sections.
    - Use existing test fixtures, helpers, assertion libraries, request contracts, routes, and mocking patterns when they are clear in the codebase.
    - Do not invent request types, endpoint routes, fixtures, assertion libraries, or dependency wiring when the codebase does not make them clear.
 
@@ -115,13 +119,16 @@ with a meaningful Red test body like this only when the route, request contract,
 [Fact]
 public async Task RegistrationController_ReturnsValidationFailure_WhenNameIsMissing()
 {
+    // Arrange
     var request = new RegisterUserRequest(
         Name: "",
         Email: "candidate@example.com",
         Password: "Str0ngPassword!");
 
+    // Act
     var response = await _client.PostAsJsonAsync("/registration", request);
 
+    // Assert
     response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 }
 ```
@@ -135,5 +142,6 @@ The example is illustrative only. Do not copy it unless those exact project type
 - The existing placeholder test method was found by `TestName`.
 - Any blocking ambiguity was turned into technical questions instead of assumptions.
 - Only the requested test body was changed.
+- The written test body includes explicit `// Arrange`, `// Act`, and `// Assert` sections in that order.
 - No production code was created or modified.
 - The resulting test remains in Red state.
