@@ -1,11 +1,26 @@
-namespace BLAInterview.IntegrationTests.Authentication;
+using System.Net;
+using Microsoft.AspNetCore.Mvc.Testing;
+
+
+namespace BLAInterview.WebApi.UnitTests.Authentication;
 
 public class TaskEndpointAuthenticationSpecs
 {
     [Fact]
-    public void TaskEndpoint_ReturnsUnauthorized_WhenAuthenticationTokenIsMissing()
+    public async Task TaskEndpoint_ReturnsUnauthorized_WhenAuthenticationTokenIsMissing()
     {
-        Assert.Fail("RED: BE-API-001-T001 not implemented yet.");
+        const string protectedTaskRoute = "/tasks";
+        var programType = Type.GetType("Program, BLAInterview.WebApi", throwOnError: true)!;
+        using var factory = (IDisposable)Activator.CreateInstance(
+            typeof(WebApplicationFactory<>).MakeGenericType(programType))!;
+        using var client = (HttpClient)factory
+            .GetType()
+            .GetMethod(nameof(WebApplicationFactory<object>.CreateClient), Type.EmptyTypes)!
+            .Invoke(factory, [])!;
+
+        var response = await client.GetAsync(protectedTaskRoute);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
