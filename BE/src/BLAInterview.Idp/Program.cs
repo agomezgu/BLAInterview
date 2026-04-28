@@ -1,5 +1,8 @@
+using BLAInterview.Idp.Config;
 using BLAInterview.Idp.Data;
 using BLAInterview.Idp.Registration;
+using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.EntityFramework.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +33,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+SeedIdentityServerConfiguration(app);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -55,5 +60,23 @@ app.MapPost("/connect/register", (RegisterUserRequest request) =>
 });
 
 app.Run();
+
+static void SeedIdentityServerConfiguration(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+
+    if (!context.ApiScopes.Any())
+    {
+        context.ApiScopes.AddRange(Config.ApiScopes.Select(apiScope => apiScope.ToEntity()));
+    }
+
+    if (!context.Clients.Any())
+    {
+        context.Clients.AddRange(Config.Clients.Select(client => client.ToEntity()));
+    }
+
+    context.SaveChanges();
+}
 
 public partial class Program;
