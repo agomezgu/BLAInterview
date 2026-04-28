@@ -32,3 +32,12 @@ Follow these practices when working in the .NET backend:
 - Postfix test classes with `Specs` to emphasize specifications.
 - Group specs by API or purpose using nested classes when useful.
 - Use short, fact-based test names.
+
+## Test naming convention
+
+Use `subject -> behavior -> scenario` for test names so each spec reads as a small requirement.
+
+- `CreateInterviewCommandHandler_CreatesInterview_WhenCandidateAndJobExist`
+- `InterviewSchedule_RejectsOverlappingSlot_WhenInterviewerIsAlreadyBooked`
+
+Keep names short and factual. The subject should be the API, handler, domain object, or capability under test; the behavior should state the expected outcome; the scenario should state the relevant condition.
