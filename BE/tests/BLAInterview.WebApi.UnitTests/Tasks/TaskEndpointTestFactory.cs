@@ -2,9 +2,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
+using BLAInterview.Application.Abstractions;
+using BLAInterview.Application.Tasks.Create;
+using BLAInterview.Domain.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BLAInterview.WebApi.UnitTests.Tasks;
@@ -20,6 +25,13 @@ internal static class TaskEndpointTestFactory
     {
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configuration) =>
+                    configuration.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:MainDb"] = "Host=localhost;Database=bla_interview_test;Username=test;Password=test"
+                    }));
+
                 builder.ConfigureServices(services =>
                 {
                     services.Configure<JwtBearerOptions>(
@@ -41,7 +53,10 @@ internal static class TaskEndpointTestFactory
                                 ClockSkew = TimeSpan.Zero
                             };
                         });
-                }));
+                    services.RemoveAll<ITaskRepository>();
+                    services.AddSingleton<ITaskRepository, StubTaskRepository>();
+                });
+            });
     }
 
     public static HttpClient CreateAuthenticatedClient(this WebApplicationFactory<Program> factory, string userId)
@@ -68,5 +83,23 @@ internal static class TaskEndpointTestFactory
             signingCredentials: new SigningCredentials(SigningKey, SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private sealed class StubTaskRepository : ITaskRepository
+    {
+        private int nextTaskId;
+
+        public Task<int> AddAsync(TaskEntity task, CancellationToken cancellationToken)
+        {
+            var taskId = Interlocked.Increment(ref nextTaskId);
+            task.Id = taskId;
+
+            return Task.FromResult(taskId);
+        }
+
+        public Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(string ownerId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

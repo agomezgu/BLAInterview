@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BLAInterview.Application\BLAInterview.Application.csproj" />
+    <ProjectReference Include="..\BLAInterview.Infrastructure\BLAInterview.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
