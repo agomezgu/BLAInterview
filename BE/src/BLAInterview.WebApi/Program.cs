@@ -38,7 +38,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
         .RequireAuthenticatedUser()
-        // .RequireClaim("sub")
+        .RequireClaim("sub")
         .RequireAssertion(context => HasApiScope(context.User, apiAudience))
         .Build();
 });

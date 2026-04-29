@@ -1,20 +1,24 @@
 using BLAInterview.Idp.Config;
+using BLAInterview.Idp.Authentication;
 using BLAInterview.Idp.Data;
 using BLAInterview.Idp.Registration;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddAuthorization();
 builder.Services.AddDbContext<IdpDbContext>(options =>
     options.UseInMemoryDatabase("BLAInterviewIdp"));
 
 builder.Services
     .AddIdentityServer()
+    .AddResourceOwnerValidator<RegisteredUserPasswordValidator>()
     .AddConfigurationStore(options =>
     {
         options.ConfigureDbContext = db =>
@@ -26,6 +30,8 @@ builder.Services
             db.UseInMemoryDatabase("BLAInterviewIdpOperational");
     })
     .AddDeveloperSigningCredential();
+
+builder.Services.AddSingleton<PasswordHasher>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -49,14 +55,39 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapPost("/connect/register", (RegisterUserRequest request) =>
+app.MapPost("/connect/register", async (
+    RegisterUserRequest request,
+    IdpDbContext context,
+    PasswordHasher passwordHasher,
+    CancellationToken cancellationToken) =>
 {
-    if (string.IsNullOrWhiteSpace(request.Name))
+    if (string.IsNullOrWhiteSpace(request.Name)
+        || string.IsNullOrWhiteSpace(request.Email)
+        || string.IsNullOrWhiteSpace(request.Password)
+        || !IsEmailAddress(request.Email))
     {
         return Results.BadRequest();
     }
 
-    return Results.Accepted();
+    var normalizedEmail = request.Email.Trim().ToUpperInvariant();
+    if (await context.Users.AnyAsync(user => user.NormalizedEmail == normalizedEmail, cancellationToken))
+    {
+        return Results.Conflict();
+    }
+
+    var user = new RegisteredUser
+    {
+        Name = request.Name.Trim(),
+        Email = request.Email.Trim(),
+        NormalizedEmail = normalizedEmail,
+        PasswordHash = passwordHasher.Hash(request.Password),
+        CreatedAt = DateTimeOffset.UtcNow
+    };
+
+    context.Users.Add(user);
+    await context.SaveChangesAsync(cancellationToken);
+
+    return Results.Created($"/connect/users/{user.Id}", new { userId = user.Id });
 });
 
 app.Run();
@@ -82,6 +113,19 @@ static void SeedIdentityServerConfiguration(WebApplication app)
     }
 
     context.SaveChanges();
+}
+
+static bool IsEmailAddress(string email)
+{
+    try
+    {
+        _ = new MailAddress(email);
+        return true;
+    }
+    catch (FormatException)
+    {
+        return false;
+    }
 }
 
 public partial class Program;

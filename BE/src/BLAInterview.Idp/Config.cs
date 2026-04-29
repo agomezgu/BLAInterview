@@ -22,8 +22,8 @@ public static class Config
             {
                 ClientId = "bla-interview-api-client",
 
-                // no interactive user, use the clientid/secret for authentication
-                AllowedGrantTypes = GrantTypes.ClientCredentials,
+                // The simulator client authenticates a registered user without a browser UI.
+                AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
 
                 // secret for authentication
                 ClientSecrets =
@@ -32,11 +32,7 @@ public static class Config
                 },
 
                 // scopes that client has access to
-                AllowedScopes = { "bla-interview-api" },
-                Claims =
-                [
-                    new ClientClaim(type: "sub", value: "bla-interview-api-client")
-                ]
+                AllowedScopes = { "bla-interview-api" }
             }
         ];
 }

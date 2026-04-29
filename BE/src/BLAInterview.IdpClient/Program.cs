@@ -1,6 +1,9 @@
-﻿
+﻿using System.Net.Http.Json;
 using System.Text.Json;
 using Duende.IdentityModel.Client;
+
+const string userEmail = "candidate@example.com";
+const string userPassword = "Str0ngPassword!";
 
 // discover endpoints from metadata
 var client = new HttpClient();
@@ -12,13 +15,31 @@ if (disco.IsError)
     return 1;
 }
 
-// request token
-var tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+// seed the simulated user when the in-memory IdP has just started
+var registrationResponse = await client.PostAsJsonAsync(
+    "https://localhost:7007/connect/register",
+    new
+    {
+        Name = "Candidate",
+        Email = userEmail,
+        Password = userPassword
+    });
+
+if (!registrationResponse.IsSuccessStatusCode && registrationResponse.StatusCode != System.Net.HttpStatusCode.Conflict)
+{
+    Console.WriteLine(registrationResponse.StatusCode);
+    return 1;
+}
+
+// request token for the registered user
+var tokenResponse = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
 {
     Address = disco.TokenEndpoint,
     ClientId = "bla-interview-api-client",
     ClientSecret = "secret",
-    Scope = "bla-interview-api"
+    Scope = "bla-interview-api",
+    UserName = userEmail,
+    Password = userPassword
 });
 
 if (tokenResponse.IsError)
