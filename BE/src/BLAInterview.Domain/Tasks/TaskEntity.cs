@@ -1,5 +1,6 @@
 using BLAInterview.Domain.Common;
 using BLAInterview.Domain.ValueObjects.Task;
+using TaskStatus = BLAInterview.Domain.ValueObjects.Task.TaskStatus;
 
 namespace BLAInterview.Domain.Tasks;
 
@@ -12,7 +13,9 @@ public sealed class TaskEntity : BaseAuditableEntity
 
     public TaskPriority? Priority { get; private set; }
 
-    private TaskEntity(string title, string ownerId, TaskDescription? description, TaskPriority? priority)
+    public TaskStatus? Status { get; private set; }
+
+    private TaskEntity(string title, string ownerId, TaskDescription? description, TaskPriority? priority, TaskStatus? status)
     {
         Title = title;
         OwnerId = ownerId;
@@ -20,12 +23,18 @@ public sealed class TaskEntity : BaseAuditableEntity
         CreatedBy = ownerId;
         Description = description;
         Priority = priority;
+        Status = status;
     }
 
     /// <summary>
-    /// Creates a task with optional description and priority value objects.
+    /// Creates a task with optional description, priority, and status value objects.
     /// </summary>
-    public static TaskEntity Create(string title, string ownerId, TaskDescription? description, TaskPriority? priority) => new(title, ownerId, description, priority);
+    public static TaskEntity Create(
+        string title,
+        string ownerId,
+        TaskDescription? description = null,
+        TaskPriority? priority = null,
+        TaskStatus? status = null) => new(title, ownerId, description, priority, status);
 
     public string Title { get; }
 

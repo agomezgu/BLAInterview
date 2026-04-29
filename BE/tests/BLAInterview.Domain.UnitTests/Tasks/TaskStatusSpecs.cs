@@ -1,4 +1,6 @@
-using BLAInterview.Domain.ValueObjects.Task;
+
+using BLAInterview.Domain.Tasks;
+using TaskStatus = BLAInterview.Domain.ValueObjects.Task.TaskStatus;
 
 namespace BLAInterview.Domain.UnitTests.Tasks;
 
@@ -12,12 +14,13 @@ public class TaskStatusSpecs
     public void TaskStatus_CreatesStatus_WhenValueIsAllowed(string status)
     {
         // Arrange
-
-        // Act
         var taskStatus = new TaskStatus(status);
 
+        // Act
+        var task = TaskEntity.Create("Prepare interview notes", "idp-user-123", status: taskStatus);
+
         // Assert
-        Assert.Equal(status, taskStatus.Value);
+        Assert.Equal(status, task.Status?.Value);
     }
 
     [Theory]
@@ -29,7 +32,11 @@ public class TaskStatusSpecs
         // Arrange
 
         // Act
-        Action createStatus = () => new TaskStatus(status);
+        Action createStatus = () =>
+        {
+            var taskStatus = new TaskStatus(status);
+            TaskEntity.Create("Prepare interview notes", "idp-user-123", status: taskStatus);
+        };
 
         // Assert
         Assert.Throws<ArgumentException>(createStatus);
