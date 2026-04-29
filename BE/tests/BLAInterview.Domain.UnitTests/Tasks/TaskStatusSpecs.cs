@@ -1,16 +1,37 @@
+using BLAInterview.Domain.ValueObjects.Task;
+
 namespace BLAInterview.Domain.UnitTests.Tasks;
 
 public class TaskStatusSpecs
 {
-    [Fact]
-    public void TaskStatus_CreatesStatus_WhenValueIsAllowed()
+    [Theory]
+    [InlineData("Pending")]
+    [InlineData("InProgress")]
+    [InlineData("Completed")]
+    [InlineData("Cancelled")]
+    public void TaskStatus_CreatesStatus_WhenValueIsAllowed(string status)
     {
-        Assert.Fail("RED: BE-API-004-A-T006 not implemented yet.");
+        // Arrange
+
+        // Act
+        var taskStatus = new TaskStatus(status);
+
+        // Assert
+        Assert.Equal(status, taskStatus.Value);
     }
 
-    [Fact]
-    public void TaskStatus_RejectsStatus_WhenValueIsNotAllowed()
+    [Theory]
+    [InlineData("")]
+    [InlineData("Blocked")]
+    [InlineData("High")]
+    public void TaskStatus_RejectsStatus_WhenValueIsNotAllowed(string status)
     {
-        Assert.Fail("RED: BE-API-004-A-T007 not implemented yet.");
+        // Arrange
+
+        // Act
+        Action createStatus = () => new TaskStatus(status);
+
+        // Assert
+        Assert.Throws<ArgumentException>(createStatus);
     }
 }
