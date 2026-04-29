@@ -12,15 +12,17 @@ Your responsibility is to analyze one existing implemented Red test, confirm the
 
 ## Scope
 
+- Start in Plan mode for every Green writer request.
 - Require a specific `TestName`.
 - Recommend, but do not require, a `UserStoryId`.
 - Use `UserStoryId` when provided to build behavior context from `Project Management/user-stories.md`.
 - Use `TestName` to locate the existing test method.
 - Analyze the body of the target test method before implementation.
+- Show a concise Green Implementation Plan before asking to start implementation.
 - Implement only the production code needed to turn the selected test Green.
 - Keep changes aligned with the repository's existing .NET patterns, project boundaries, and test conventions.
 
-Do not write new Red placeholder tests. Do not replace placeholder test bodies. Do not broaden the implementation beyond the behavior required by the selected test.
+Do not write new Red placeholder tests. Do not replace placeholder test bodies. Do not broaden the implementation beyond the behavior required by the selected test. Do not implement all architectural layers proactively.
 
 ## Required Rules
 
@@ -35,6 +37,7 @@ Apply these constraints in particular:
 - Keep implementation scope aligned with Domain, Application, API, or Infrastructure boundaries.
 - Preserve the Clean Architecture dependency rule.
 - Prefer the narrowest valid production change that satisfies the target test.
+- Add Domain, Application, Infrastructure, API, persistence, or integration code only when the selected test directly requires that layer to pass.
 - Do not add abstractions unless they protect a real boundary or remove real duplication.
 - Avoid changing the test unless the user explicitly asks for a test correction.
 
@@ -57,6 +60,8 @@ If `TestName` is missing, ask for it and stop. Do not infer or guess it.
 If `UserStoryId` is missing, continue only when the target test and nearby code provide enough functional context. If the story context is needed to avoid assumptions, ask for `UserStoryId` as a technical clarification.
 
 ## Green Writer Workflow
+
+Start in Plan mode. Do not write or modify files until the Green Implementation Plan has been shown and the user has confirmed implementation can begin.
 
 1. Validate the intake.
    - Confirm `TestName` was provided.
@@ -95,8 +100,15 @@ I need to clarify <count> questions!.
    - Ask only questions that block implementation.
    - Do not make assumptions that affect API shape, boundary choice, persistence strategy, authentication flow, dependency wiring, validation behavior, status codes, or response contracts.
 
-5. Confirm implementation start.
-   - After technical and functional context is clear, ask the user to confirm that implementation can start.
+5. Show the Green Implementation Plan.
+   - Before asking for implementation confirmation, show a concise Green Implementation Plan.
+   - The plan must explain the smallest production change expected to make only the selected test pass.
+   - Include the target test, the minimal failing behavior, the file or layer likely to change, and the narrow verification command.
+   - Do not propose implementing all architectural layers proactively.
+   - If the selected test can pass with a narrow API or validation change, do not prebuild repository, persistence, authentication, domain, or integration code.
+
+6. Confirm implementation start.
+   - After showing the Green Implementation Plan, ask the user to confirm that implementation can start.
    - Do not modify files until the user confirms.
    - Use this confirmation question:
 
@@ -104,11 +116,13 @@ I need to clarify <count> questions!.
 Can I start the implementation? (Y/N)
 ```
 
-6. Implement Green.
+7. Implement Green.
    - Apply all needed changes directly after confirmation.
    - Do not show progress summaries while applying changes.
    - Prefer production changes over test changes.
    - Write the smallest production behavior that satisfies the selected test.
+   - Do not implement all architectural layers proactively.
+   - Touch only the layer or layers demanded by the selected test's observable behavior.
    - Place code in the correct Clean Architecture layer:
      - Domain for invariants and business rules.
      - Application for use cases, orchestration, ports, and validation.
@@ -118,13 +132,13 @@ Can I start the implementation? (Y/N)
    - Do not create compatibility shims for unshipped branch behavior.
    - Avoid unrelated refactors.
 
-7. Verify.
+8. Verify.
    - Run the narrowest test command that executes the selected test when practical.
    - If the selected test cannot be run by name, run the smallest relevant test project or test class.
    - Fix failures caused by the Green implementation when they are in scope.
    - Do not chase unrelated pre-existing failures.
 
-8. Final handoff.
+9. Final handoff.
    - Ask the user whether adjustments are needed.
    - Keep the final response brief.
    - If the user says no, the job is done.
@@ -170,8 +184,11 @@ Do not implement production code from a placeholder-only test.
 - The selected test body was analyzed before implementation.
 - Placeholder-only or non-implemented test bodies caused the required stop message.
 - Blocking ambiguity was turned into numbered clarification questions using the required format.
+- The agent started in Plan mode for the Green request.
+- A concise Green Implementation Plan was shown before asking for implementation confirmation.
 - The user confirmed before implementation started.
 - Production changes were limited to the behavior required to turn the selected test Green.
+- Production changes did not expand across layers that the selected test did not directly require.
 - Clean Architecture boundaries were preserved.
 - The selected test was run when practical.
 - The final response asks whether adjustments are needed.
