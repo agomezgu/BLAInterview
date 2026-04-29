@@ -7,20 +7,26 @@ namespace BLAInterview.Infrastructure.UnitTests.Tasks;
 /// <summary>
 /// Specifies task repository persistence behavior against the PostgreSQL fixture.
 /// </summary>
-public class CreateTaskSpecs : IClassFixture<PostgresFixture>
+public class CreateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifetime
 {
+    private readonly LocalPostgresFixture _fixture;
     private readonly TaskRepository _taskRepository;
 
-    public CreateTaskSpecs(PostgresFixture fixture)
+    public CreateTaskSpecs(LocalPostgresFixture fixture)
     {
+        _fixture = fixture;
         _taskRepository = new TaskRepository(fixture.DataSource);
     }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    public Task InitializeAsync() => _fixture.ResetAsync();
 
     [Fact]
     public async Task Task_CreatesTask_WhenTitleAndOwnerAreProvided()
     {
         // Arrange
-        var taskEntity = TaskEntity.Create("Prepare interview notes", "idp-user-123",null);
+        var taskEntity = TaskEntity.Create("Prepare interview notes", "idp-user-123", null);
         // Act
         var task = await _taskRepository.AddAsync(taskEntity, CancellationToken.None);
 
