@@ -2,7 +2,7 @@ using BLAInterview.Application.Abstractions;
 using BLAInterview.Application.Tasks;
 using BLAInterview.Application.Tasks.Create;
 
-namespace BLAInterview.WebApi.UnitTests.Application.Tasks;
+namespace BLAInterview.Application.UnitTests.Tasks;
 
 public class CreateTaskCommandHandlerSpecs
 {

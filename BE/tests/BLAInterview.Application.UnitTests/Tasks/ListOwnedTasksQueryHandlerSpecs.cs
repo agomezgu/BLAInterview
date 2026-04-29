@@ -1,4 +1,4 @@
-namespace BLAInterview.WebApi.UnitTests.Application.Tasks;
+namespace BLAInterview.Application.UnitTests.Tasks;
 
 public class ListOwnedTasksQueryHandlerSpecs
 {
