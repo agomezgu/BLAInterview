@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using BLAInterview.Application.Abstractions;
 using BLAInterview.Application.Tasks.Create;
+using BLAInterview.Application.Tasks.List;
 using BLAInterview.Infrastructure.Tasks;
 using FluentValidation;
 using Npgsql;
@@ -45,6 +46,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IValidator<CreateTaskCommand>, CreateTaskCommandValidator>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ICommandHandler<CreateTaskCommand, int>, CreateTaskCommandHandler>();
+builder.Services.AddScoped<ICommandHandler<ListOwnedTasksQuery, IReadOnlyCollection<TaskDto>>, ListOwnedTasksQueryHandler>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

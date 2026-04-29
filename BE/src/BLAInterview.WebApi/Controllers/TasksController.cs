@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using BLAInterview.Application.Abstractions;
 using BLAInterview.Application.Extensions;
 using BLAInterview.Application.Tasks.Create;
+using BLAInterview.Application.Tasks.List;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,18 +12,22 @@ namespace BLAInterview.WebApi.Controllers;
 [Authorize]
 [Route("tasks")]
 public sealed class TasksController (
-    ICommandHandler<CreateTaskCommand, int> createTaskHandler) : BLABaseController
+    ICommandHandler<CreateTaskCommand, int> createTaskHandler,
+    ICommandHandler<ListOwnedTasksQuery, IReadOnlyCollection<TaskDto>> listOwnedTasksHandler) : BLABaseController
 {
-    private static readonly ConcurrentBag<TaskDto> CreatedTasks = [];
-
+   
     [HttpGet]
-    public IActionResult GetTasks(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetTasks(CancellationToken cancellationToken)
     {
-        var ownedTasks = CreatedTasks
-            .Where(task => task.OwnerId == AuthenticatedUserId)
-            .ToList();
+        var command = new ListOwnedTasksQuery(AuthenticatedUserId);
+        var result = await listOwnedTasksHandler.HandleAsync(command, cancellationToken);
 
-        return Ok(ownedTasks);
+        if (result.IsFailed)
+        {
+            return BadRequest(result.ToErrorDtos());
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpPost]
@@ -38,8 +43,7 @@ public sealed class TasksController (
             return BadRequest(result.ToErrorDtos());
         }
 
-        CreatedTasks.Add(new TaskDto(result.Value, request.Title, AuthenticatedUserId, DateTimeOffset.UtcNow));
-
+       
         return Created($"/tasks/{result.Value}", new { taskId = result.Value, code = "TASK_CREATED" });
     }
 }
