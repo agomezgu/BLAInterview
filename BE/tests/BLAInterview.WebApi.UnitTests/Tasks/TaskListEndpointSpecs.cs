@@ -34,8 +34,10 @@ public class TaskListEndpointSpecs : IDisposable
         Assert.NotNull(tasks);
 
         Assert.Single(tasks);
+        Assert.True(tasks[0].Id > 0);
         Assert.Equal("Prepare interview notes", tasks[0].Title);
         Assert.Equal(AuthenticatedUserId, tasks[0].OwnerId);
+        Assert.NotEqual(default, tasks[0].Created);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using BLAInterview.Application.Abstractions;
 using BLAInterview.Application.Extensions;
 using BLAInterview.Application.Tasks.Create;
@@ -12,13 +13,16 @@ namespace BLAInterview.WebApi.Controllers;
 public sealed class TasksController (
     ICommandHandler<CreateTaskCommand, int> createTaskHandler) : BLABaseController
 {
+    private static readonly ConcurrentBag<TaskDto> CreatedTasks = [];
+
     [HttpGet]
     public IActionResult GetTasks(CancellationToken cancellationToken)
     {
-        
-        //var userId = User.FindFirst("sub")?.Value;
+        var ownedTasks = CreatedTasks
+            .Where(task => task.OwnerId == AuthenticatedUserId)
+            .ToList();
 
-        return Ok(new { userId = "Claim must Be Added", tasks = Array.Empty<object>() });
+        return Ok(ownedTasks);
     }
 
     [HttpPost]
@@ -33,6 +37,8 @@ public sealed class TasksController (
         {
             return BadRequest(result.ToErrorDtos());
         }
+
+        CreatedTasks.Add(new TaskDto(result.Value, request.Title, AuthenticatedUserId, DateTimeOffset.UtcNow));
 
         return Created($"/tasks/{result.Value}", new { taskId = result.Value, code = "TASK_CREATED" });
     }
