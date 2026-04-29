@@ -64,6 +64,20 @@ Acceptance Criteria:
 
 Traceability: FR-016, FR-024, FR-031, FR-037, FR-039, NFR-034.
 
+### BE-API-004-A: Add Task Details
+
+As an authenticated user, I want to add more details to a task so that I can better describe, prioritize, and track my work.
+
+Acceptance Criteria:
+
+- Given an authenticated user, when the user creates or updates a task with a description, then the description must be more than 10 characters and less than 50 characters.
+- Given an authenticated user, when the user creates or updates a task with a priority, then the priority must be one of High, Medium, or Low.
+- Given an authenticated user, when the user creates or updates a task with a status, then the status must be one of Pending, InProgress, Completed, or Cancelled.
+- Given a task details request with an invalid description length, priority, or status, when the API validates the request, then the API returns a validation failure.
+- Given a successful task create, update, retrieve, or list response, when the API returns task data, then the response includes description, priority, and status.
+
+Traceability: FR-017, FR-018, FR-019, FR-020, FR-021, FR-022, FR-023, FR-024, FR-025, FR-026, FR-032, FR-033, FR-034.
+
 ### BE-API-005: Retrieve Owned Task Details
 
 As an authenticated user, I want to view the details of one of my tasks so that I can inspect its full information.
