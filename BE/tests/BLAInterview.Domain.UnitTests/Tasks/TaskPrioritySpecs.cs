@@ -1,16 +1,50 @@
+using BLAInterview.Domain.Tasks;
+using BLAInterview.Domain.ValueObjects.Task;
+
 namespace BLAInterview.Domain.UnitTests.Tasks;
 
 public class TaskPrioritySpecs
 {
-    [Fact]
-    public void TaskPriority_CreatesPriority_WhenValueIsAllowed()
+    [Theory]
+    [InlineData("High")]
+    [InlineData("Medium")]
+    [InlineData("Low")]
+    public void TaskPriority_CreatesPriority_WhenValueIsAllowed(string priority)
     {
-        Assert.Fail("RED: BE-API-004-A-T004 not implemented yet.");
+        // Arrange
+
+        // Act
+        var taskPriority = new TaskPriority(priority);
+
+        // Assert
+        Assert.Equal(priority, taskPriority.Value);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("Urgent")]
+    [InlineData("InProgress")]
+    public void TaskPriority_RejectsPriority_WhenValueIsNotAllowed(string priority)
+    {
+        // Arrange
+
+        // Act
+        Action createPriority = () => new TaskPriority(priority);
+
+        // Assert
+        Assert.Throws<ArgumentException>(createPriority);
     }
 
     [Fact]
-    public void TaskPriority_RejectsPriority_WhenValueIsNotAllowed()
+    public void TaskEntity_CreatesTask_WhenPriorityIsProvided()
     {
-        Assert.Fail("RED: BE-API-004-A-T005 not implemented yet.");
+        // Arrange
+        var priority = new TaskPriority("High");
+
+        // Act
+        var task = TaskEntity.Create("Prepare interview notes", "idp-user-123", null, priority);
+
+        // Assert
+        Assert.Equal(priority, task.Priority);
     }
 }
