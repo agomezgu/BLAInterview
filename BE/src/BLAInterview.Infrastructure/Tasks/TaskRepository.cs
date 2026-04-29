@@ -41,8 +41,32 @@ public class TaskRepository : ITaskRepository
         return taskId;
     }
 
-    public Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(string ownerId, CancellationToken cancellationToken)
+    /// <summary>
+    /// Reads task rows owned by the specified owner from the tasks table.
+    /// </summary>
+    public async Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(string ownerId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await using var command = _dataSource.CreateCommand(
+            """
+            SELECT id, title, owner_id, created
+            FROM tasks
+            WHERE owner_id = $1;
+            """);
+
+        command.Parameters.AddWithValue(ownerId);
+
+        var tasks = new List<TaskDto>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            tasks.Add(new TaskDto(
+                reader.GetInt32(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetFieldValue<DateTimeOffset>(3)));
+        }
+
+        return tasks;
     }
 }
