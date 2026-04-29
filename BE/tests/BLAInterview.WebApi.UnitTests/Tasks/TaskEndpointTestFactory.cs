@@ -87,6 +87,8 @@ internal static class TaskEndpointTestFactory
 
     private sealed class StubTaskRepository : ITaskRepository
     {
+        private readonly List<TaskDto> tasks = [];
+        private readonly object syncRoot = new();
         private int nextTaskId;
 
         public Task<int> AddAsync(TaskEntity task, CancellationToken cancellationToken)
@@ -94,12 +96,24 @@ internal static class TaskEndpointTestFactory
             var taskId = Interlocked.Increment(ref nextTaskId);
             task.Id = taskId;
 
+            lock (syncRoot)
+            {
+                tasks.Add(new TaskDto(task.Id, task.Title, task.OwnerId, task.Created));
+            }
+
             return Task.FromResult(taskId);
         }
 
         public Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(string ownerId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            lock (syncRoot)
+            {
+                IReadOnlyCollection<TaskDto> ownedTasks = tasks
+                    .Where(task => task.OwnerId == ownerId)
+                    .ToList();
+
+                return Task.FromResult(ownedTasks);
+            }
         }
     }
 }

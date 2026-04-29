@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using BLAInterview.Idp.Registration;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -26,26 +27,61 @@ public class RegistrationControllerSpecs(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
-    public void RegistrationController_ReturnsValidationFailure_WhenEmailIsMissing()
+    public async Task RegistrationController_ReturnsValidationFailure_WhenEmailIsMissing()
     {
-        Assert.Fail("RED: BE-IDP-001-T002 not implemented yet.");
+        var request = new RegisterUserRequest(
+            Name: "Candidate",
+            Email: "",
+            Password: "Str0ngPassword!");
+
+        var response = await _client.PostAsJsonAsync("/connect/register", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
-    public void RegistrationController_ReturnsValidationFailure_WhenEmailFormatIsInvalid()
+    public async Task RegistrationController_ReturnsValidationFailure_WhenEmailFormatIsInvalid()
     {
-        Assert.Fail("RED: BE-IDP-001-T003 not implemented yet.");
+        var request = new RegisterUserRequest(
+            Name: "Candidate",
+            Email: "not-an-email",
+            Password: "Str0ngPassword!");
+
+        var response = await _client.PostAsJsonAsync("/connect/register", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
-    public void RegistrationController_ReturnsValidationFailure_WhenPasswordIsMissing()
+    public async Task RegistrationController_ReturnsValidationFailure_WhenPasswordIsMissing()
     {
-        Assert.Fail("RED: BE-IDP-001-T004 not implemented yet.");
+        var request = new RegisterUserRequest(
+            Name: "Candidate",
+            Email: UniqueEmail(),
+            Password: "");
+
+        var response = await _client.PostAsJsonAsync("/connect/register", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
-    public void RegistrationController_AcceptsRequest_WhenRegistrationDataIsCompleteAndUsable()
+    public async Task RegistrationController_AcceptsRequest_WhenRegistrationDataIsCompleteAndUsable()
     {
-        Assert.Fail("RED: BE-IDP-001-T005 not implemented yet.");
+        var request = new RegisterUserRequest(
+            Name: "Candidate",
+            Email: UniqueEmail(),
+            Password: "Str0ngPassword!");
+
+        var response = await _client.PostAsJsonAsync("/connect/register", request);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(body.GetProperty("userId").GetInt32() > 0);
+    }
+
+    private static string UniqueEmail()
+    {
+        return $"candidate-{Guid.NewGuid():N}@example.com";
     }
 }

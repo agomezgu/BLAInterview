@@ -36,20 +36,38 @@ public class CreateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifeti
     }
 
     [Fact]
-    public void Task_AssignsOwnerId_WhenTaskIsCreated()
+    public async Task Task_AssignsOwnerId_WhenTaskIsCreated()
     {
-        Assert.Fail("RED: BE-API-003-T002 not implemented yet.");
+        var taskEntity = TaskEntity.Create("Prepare interview notes", "idp-user-123", null);
+
+        await _taskRepository.AddAsync(taskEntity, CancellationToken.None);
+        var tasks = await _taskRepository.GetOwnedTasksAsync("idp-user-123", CancellationToken.None);
+
+        var task = Assert.Single(tasks);
+        Assert.Equal("idp-user-123", task.OwnerId);
     }
 
     [Fact]
-    public void Task_RejectsCreation_WhenTitleIsMissing()
+    public async Task Task_RejectsCreation_WhenTitleIsMissing()
     {
-        Assert.Fail("RED: BE-API-003-T003 not implemented yet.");
+        var taskEntity = TaskEntity.Create(null!, "idp-user-123", null);
+
+        await Assert.ThrowsAnyAsync<Exception>(() =>
+            _taskRepository.AddAsync(taskEntity, CancellationToken.None));
     }
 
     [Fact]
-    public void Task_ExposesCreatedTaskDetails_WhenTaskIsCreated()
+    public async Task Task_ExposesCreatedTaskDetails_WhenTaskIsCreated()
     {
-        Assert.Fail("RED: BE-API-003-T004 not implemented yet.");
+        var taskEntity = TaskEntity.Create("Prepare interview notes", "idp-user-123", null);
+
+        var taskId = await _taskRepository.AddAsync(taskEntity, CancellationToken.None);
+        var tasks = await _taskRepository.GetOwnedTasksAsync("idp-user-123", CancellationToken.None);
+
+        var task = Assert.Single(tasks);
+        Assert.Equal(taskId, task.Id);
+        Assert.Equal("Prepare interview notes", task.Title);
+        Assert.Equal("idp-user-123", task.OwnerId);
+        Assert.NotEqual(default, task.Created);
     }
 }

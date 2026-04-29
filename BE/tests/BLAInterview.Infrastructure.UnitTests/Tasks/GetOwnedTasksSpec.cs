@@ -43,14 +43,34 @@ public class GetOwnedTasksSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLif
     }
 
     [Fact]
-    public void TaskRepository_ReturnsEmptyList_WhenUserHasNoTasks()
+    public async Task TaskRepository_ReturnsEmptyList_WhenUserHasNoTasks()
     {
-        Assert.Fail("RED: BE-API-004-T002 not implemented yet.");
+        var repository = new TaskRepository(_fixture.DataSource);
+
+        var tasks = await repository.GetOwnedTasksAsync("idp-user-123", CancellationToken.None);
+
+        Assert.Empty(tasks);
     }
 
     [Fact]
-    public void TaskRepository_ExcludesOtherUsersTasks_WhenUserRequestsList()
+    public async Task TaskRepository_ExcludesOtherUsersTasks_WhenUserRequestsList()
     {
-        Assert.Fail("RED: BE-API-004-T003 not implemented yet.");
+        var repository = new TaskRepository(_fixture.DataSource);
+        var ownedTask = TaskEntity.Create(
+            "Prepare interview notes",
+            "idp-user-123",
+            null);
+        var otherUsersTask = TaskEntity.Create(
+            "Review scorecard",
+            "idp-user-456",
+            null);
+        await repository.AddAsync(ownedTask, CancellationToken.None);
+        await repository.AddAsync(otherUsersTask, CancellationToken.None);
+
+        var tasks = await repository.GetOwnedTasksAsync("idp-user-123", CancellationToken.None);
+
+        var task = Assert.Single(tasks);
+        Assert.Equal(ownedTask.Id, task.Id);
+        Assert.Equal("idp-user-123", task.OwnerId);
     }
 }

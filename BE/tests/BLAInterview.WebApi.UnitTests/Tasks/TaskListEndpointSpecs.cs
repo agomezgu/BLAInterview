@@ -41,21 +41,54 @@ public class TaskListEndpointSpecs : IDisposable
     }
 
     [Fact]
-    public void TaskListEndpoint_ReturnsEmptyList_WhenAuthenticatedUserHasNoTasks()
+    public async Task TaskListEndpoint_ReturnsEmptyList_WhenAuthenticatedUserHasNoTasks()
     {
-        Assert.Fail("RED: BE-API-004-T002 not implemented yet.");
+        var response = await this.client.GetAsync("/tasks");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var tasks = await response.Content.ReadFromJsonAsync<List<TaskDto>>();
+        Assert.NotNull(tasks);
+        Assert.Empty(tasks);
     }
 
     [Fact]
-    public void TaskListEndpoint_ExcludesOtherUsersTasks_WhenAuthenticatedUserRequestsList()
+    public async Task TaskListEndpoint_ExcludesOtherUsersTasks_WhenAuthenticatedUserRequestsList()
     {
-        Assert.Fail("RED: BE-API-004-T003 not implemented yet.");
+        var otherUserClient = this.factory.CreateAuthenticatedClient("idp-user-456");
+        try
+        {
+            var ownedCreationResponse = await client.PostAsJsonAsync(
+                "/tasks",
+                new CreateTaskDto("Prepare interview notes"));
+            var otherCreationResponse = await otherUserClient.PostAsJsonAsync(
+                "/tasks",
+                new CreateTaskDto("Review scorecard"));
+            Assert.Equal(HttpStatusCode.Created, ownedCreationResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, otherCreationResponse.StatusCode);
+
+            var response = await this.client.GetAsync("/tasks");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var tasks = await response.Content.ReadFromJsonAsync<List<TaskDto>>();
+            Assert.NotNull(tasks);
+            var task = Assert.Single(tasks);
+            Assert.Equal("Prepare interview notes", task.Title);
+            Assert.Equal(AuthenticatedUserId, task.OwnerId);
+        }
+        finally
+        {
+            otherUserClient.Dispose();
+        }
     }
 
     [Fact]
-    public void TaskListEndpoint_ReturnsUnauthorized_WhenUserIsNotAuthenticated()
+    public async Task TaskListEndpoint_ReturnsUnauthorized_WhenUserIsNotAuthenticated()
     {
-        Assert.Fail("RED: BE-API-004-T004 not implemented yet.");
+        using var unauthenticatedClient = this.factory.CreateClient();
+
+        var response = await unauthenticatedClient.GetAsync("/tasks");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     public void Dispose()

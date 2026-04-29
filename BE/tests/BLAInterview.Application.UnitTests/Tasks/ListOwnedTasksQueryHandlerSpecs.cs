@@ -38,15 +38,50 @@ public class ListOwnedTasksQueryHandlerSpecs
     }
 
     [Fact]
-    public void ListOwnedTasksQueryHandler_ReturnsEmptyList_WhenUserHasNoTasks()
+    public async Task ListOwnedTasksQueryHandler_ReturnsEmptyList_WhenUserHasNoTasks()
     {
-        Assert.Fail("RED: BE-API-004-T002 not implemented yet.");
+        var repository = new StubTaskReadRepository(
+        [
+            new TaskDto(
+                Id: 202,
+                Title: "Review scorecard",
+                OwnerId: "idp-user-456",
+                Created: new DateTimeOffset(2026, 4, 29, 10, 45, 0, TimeSpan.Zero))
+        ]);
+        var handler = new ListOwnedTasksQueryHandler(repository);
+        var query = new ListOwnedTasksQuery("idp-user-123");
+
+        var result = await handler.HandleAsync(query, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value);
     }
 
     [Fact]
-    public void ListOwnedTasksQueryHandler_ExcludesOtherUsersTasks_WhenUserRequestsList()
+    public async Task ListOwnedTasksQueryHandler_ExcludesOtherUsersTasks_WhenUserRequestsList()
     {
-        Assert.Fail("RED: BE-API-004-T003 not implemented yet.");
+        var ownedTask = new TaskDto(
+            Id: 101,
+            Title: "Prepare interview notes",
+            OwnerId: "idp-user-123",
+            Created: new DateTimeOffset(2026, 4, 29, 10, 15, 0, TimeSpan.Zero));
+        var repository = new StubTaskReadRepository(
+        [
+            ownedTask,
+            new TaskDto(
+                Id: 202,
+                Title: "Review scorecard",
+                OwnerId: "idp-user-456",
+                Created: new DateTimeOffset(2026, 4, 29, 10, 45, 0, TimeSpan.Zero))
+        ]);
+        var handler = new ListOwnedTasksQueryHandler(repository);
+        var query = new ListOwnedTasksQuery("idp-user-123");
+
+        var result = await handler.HandleAsync(query, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        var task = Assert.Single(result.Value);
+        Assert.Equal(ownedTask, task);
     }
 
     private sealed class StubTaskReadRepository(IReadOnlyCollection<TaskDto> tasks) : ITaskRepository
