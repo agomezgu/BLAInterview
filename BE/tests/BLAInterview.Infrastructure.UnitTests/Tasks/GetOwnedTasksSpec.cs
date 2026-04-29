@@ -1,3 +1,6 @@
+using BLAInterview.Domain.Tasks;
+using BLAInterview.Infrastructure.Tasks;
+
 namespace BLAInterview.Infrastructure.UnitTests.Tasks;
 
 /// <summary>
@@ -6,9 +9,33 @@ namespace BLAInterview.Infrastructure.UnitTests.Tasks;
 public class GetOwnedTasksSpecs
 {
     [Fact]
-    public void TaskRepository_ReturnsOwnedTasks_WhenUserHasTasks()
+    public async Task TaskRepository_ReturnsOwnedTasks_WhenUserHasTasks()
     {
-        Assert.Fail("RED: BE-API-004-T001 not implemented yet.");
+        // Arrange
+        var fixture = new Fixtures.PostgresFixture();
+        await fixture.InitializeAsync();
+        try
+        {
+            var repository = new TaskRepository(fixture.DataSource);
+            var ownedTask = TaskEntity.Create(
+                "Prepare interview notes",
+                "idp-user-123");
+            await repository.AddAsync(ownedTask, CancellationToken.None);
+
+            // Act
+            var tasks = await repository.GetOwnedTasksAsync("idp-user-123", CancellationToken.None);
+
+            // Assert
+            var task = Assert.Single(tasks);
+            Assert.Equal(ownedTask.Id, task.Id);
+            Assert.Equal("Prepare interview notes", task.Title);
+            Assert.Equal("idp-user-123", task.OwnerId);
+            Assert.NotEqual(default, task.Created);
+        }
+        finally
+        {
+            await fixture.DisposeAsync();
+        }
     }
 
     [Fact]
