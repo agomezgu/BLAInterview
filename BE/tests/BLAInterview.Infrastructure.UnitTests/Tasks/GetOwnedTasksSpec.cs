@@ -19,7 +19,7 @@ public class GetOwnedTasksSpecs
             var repository = new TaskRepository(fixture.DataSource);
             var ownedTask = TaskEntity.Create(
                 "Prepare interview notes",
-                "idp-user-123");
+                "idp-user-123",null);
             await repository.AddAsync(ownedTask, CancellationToken.None);
 
             // Act

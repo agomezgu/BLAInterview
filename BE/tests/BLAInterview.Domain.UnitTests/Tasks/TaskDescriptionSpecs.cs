@@ -1,62 +1,49 @@
+using BLAInterview.Domain.ValueObjects.Task;
+
 namespace BLAInterview.Domain.UnitTests.Tasks;
 
 public class TaskDescriptionSpecs
 {
+    public static TheoryData<string> DescriptionsWithFiftyCharactersOrMore => new()
+    {
+        new string('A', 50),
+        new string('A', 51)
+    };
+
     [Fact]
     public void TaskDescription_CreatesDescription_WhenLengthIsBetweenMinimumAndMaximum()
     {
         // Arrange
-        var description = "Eleven ok.";
+        var description = "Eleven okay.";
 
         // Act
-        var taskDescription = BLAInterview.Domain.Tasks.TaskDescription.Create(description);
+        var taskDescription = new TaskDescription(description);
 
         // Assert
         Assert.Equal(description, taskDescription.Value);
     }
-
-    [Fact]
-    public void TaskDescription_RejectsDescription_WhenLengthIsTenCharactersOrLess()
+    
+    [Theory]
+    [InlineData("")]
+    [InlineData("Short")]
+    [InlineData("1234567890")]
+    public void TaskDescription_RejectsDescription_WhenLengthIsTenCharactersOrLess(string description)
     {
-        // Arrange
-        var descriptions = new[]
-        {
-            "",
-            "Short",
-            "1234567890"
-        };
-
         // Act
-        var createDescriptions = descriptions
-            .Select<Action>(description => () => BLAInterview.Domain.Tasks.TaskDescription.Create(description))
-            .ToArray();
+        var createDescription = () => new TaskDescription(description);
 
         // Assert
-        foreach (var createDescription in createDescriptions)
-        {
-            Assert.Throws<ArgumentException>(createDescription);
-        }
+        Assert.Throws<ArgumentException>(createDescription);
     }
 
-    [Fact]
-    public void TaskDescription_RejectsDescription_WhenLengthIsFiftyCharactersOrMore()
+    [Theory]
+    [MemberData(nameof(DescriptionsWithFiftyCharactersOrMore))]
+    public void TaskDescription_RejectsDescription_WhenLengthIsFiftyCharactersOrMore(string description)
     {
-        // Arrange
-        var descriptions = new[]
-        {
-            new string('A', 50),
-            new string('A', 51)
-        };
-
         // Act
-        var createDescriptions = descriptions
-            .Select<Action>(description => () => BLAInterview.Domain.Tasks.TaskDescription.Create(description))
-            .ToArray();
+        var createDescription = () => new TaskDescription(description);
 
         // Assert
-        foreach (var createDescription in createDescriptions)
-        {
-            Assert.Throws<ArgumentException>(createDescription);
-        }
+        Assert.Throws<ArgumentException>(createDescription);
     }
 }

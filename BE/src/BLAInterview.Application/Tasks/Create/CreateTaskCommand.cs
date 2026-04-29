@@ -25,7 +25,7 @@ public sealed class CreateTaskCommandHandler(
                     new Error(failure.ErrorMessage).WithMetadata("Code", failure.ErrorCode)));
         }
 
-        var task = TaskEntity.Create(command.Title, command.OwnerId);
+        var task = TaskEntity.Create(command.Title, command.OwnerId, null);
         var taskId = await repository.AddAsync(task, cancellationToken);
 
         return Result.Ok(taskId);

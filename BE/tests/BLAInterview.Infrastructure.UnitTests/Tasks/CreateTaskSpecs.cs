@@ -20,7 +20,7 @@ public class CreateTaskSpecs : IClassFixture<PostgresFixture>
     public async Task Task_CreatesTask_WhenTitleAndOwnerAreProvided()
     {
         // Arrange
-        var taskEntity = TaskEntity.Create("Prepare interview notes", "idp-user-123");
+        var taskEntity = TaskEntity.Create("Prepare interview notes", "idp-user-123",null);
         // Act
         var task = await _taskRepository.AddAsync(taskEntity, CancellationToken.None);
 
