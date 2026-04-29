@@ -6,7 +6,6 @@ public sealed class TaskEntity : BaseAuditableEntity
 {
     private TaskEntity(string title, string ownerId)
     {
-        Id = Guid.NewGuid();
         Title = title;
         OwnerId = ownerId;
         Created = DateTimeOffset.UtcNow;
