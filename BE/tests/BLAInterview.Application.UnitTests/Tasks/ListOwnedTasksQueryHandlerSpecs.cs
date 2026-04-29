@@ -1,5 +1,7 @@
+using BLAInterview.Application.Abstractions;
 using BLAInterview.Application.Tasks.Create;
 using BLAInterview.Application.Tasks.List;
+using BLAInterview.Domain.Tasks;
 
 namespace BLAInterview.Application.UnitTests.Tasks;
 
@@ -47,9 +49,14 @@ public class ListOwnedTasksQueryHandlerSpecs
         Assert.Fail("RED: BE-API-004-T003 not implemented yet.");
     }
 
-    private sealed class StubTaskReadRepository(IReadOnlyCollection<TaskDto> tasks) : ITaskReadRepository
+    private sealed class StubTaskReadRepository(IReadOnlyCollection<TaskDto> tasks) : ITaskRepository
     {
-        public Task<IReadOnlyCollection<TaskDto>> ListOwnedAsync(
+        public Task<int> AddAsync(TaskEntity task, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(
             string ownerId,
             CancellationToken cancellationToken)
         {

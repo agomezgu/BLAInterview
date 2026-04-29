@@ -1,6 +1,7 @@
 using BLAInterview.Application.Abstractions;
 using BLAInterview.Application.Tasks;
 using BLAInterview.Application.Tasks.Create;
+using BLAInterview.Domain.Tasks;
 
 namespace BLAInterview.Application.UnitTests.Tasks;
 
@@ -15,8 +16,9 @@ public class CreateTaskCommandHandlerSpecs
             OwnerId: "idp-user-123");
         FluentValidation.IValidator<CreateTaskCommand> validator =
             new CreateTaskCommandValidator();
+        var repository = new StubTaskRepository(42);
         ICommandHandler<CreateTaskCommand, int> handler =
-            new CreateTaskCommandHandler(validator);
+            new CreateTaskCommandHandler(validator, repository);
 
         // Act
         FluentResults.Result<int> result =
@@ -25,8 +27,10 @@ public class CreateTaskCommandHandlerSpecs
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Empty(result.Errors);
-        Assert.NotEqual(0, result.Value);
-        
+        Assert.Equal(42, result.Value);
+        Assert.NotNull(repository.StoredTask);
+        Assert.Equal("Prepare interview notes", repository.StoredTask.Title);
+        Assert.Equal("idp-user-123", repository.StoredTask.OwnerId);
     }
 
     [Fact]
@@ -45,5 +49,23 @@ public class CreateTaskCommandHandlerSpecs
     public void CreateTaskCommandHandler_ReturnsCreatedTaskDetails_WhenTaskIsCreated()
     {
         Assert.Fail("RED: BE-API-003-T004 not implemented yet.");
+    }
+
+    private sealed class StubTaskRepository(int taskId) : ITaskRepository
+    {
+        public TaskEntity? StoredTask { get; private set; }
+
+        public Task<int> AddAsync(TaskEntity task, CancellationToken cancellationToken)
+        {
+            StoredTask = task;
+            StoredTask.Id = taskId;
+
+            return Task.FromResult(taskId);
+        }
+
+        public Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(string ownerId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

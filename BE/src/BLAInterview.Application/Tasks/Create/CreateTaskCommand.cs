@@ -1,4 +1,5 @@
 using BLAInterview.Application.Abstractions;
+using BLAInterview.Domain.Tasks;
 using FluentResults;
 using FluentValidation;
 
@@ -6,7 +7,9 @@ namespace BLAInterview.Application.Tasks.Create;
 
 public sealed record CreateTaskCommand(string Title, string OwnerId) : ICommand<int>;
 
-public sealed class CreateTaskCommandHandler(IValidator<CreateTaskCommand> validator)
+public sealed class CreateTaskCommandHandler(
+    IValidator<CreateTaskCommand> validator,
+    ITaskRepository repository)
     : ICommandHandler<CreateTaskCommand, int>
 {
     public async Task<Result<int>> HandleAsync(
@@ -22,7 +25,8 @@ public sealed class CreateTaskCommandHandler(IValidator<CreateTaskCommand> valid
                     new Error(failure.ErrorMessage).WithMetadata("Code", failure.ErrorCode)));
         }
 
-        var taskId = 1;
+        var task = TaskEntity.Create(command.Title, command.OwnerId);
+        var taskId = await repository.AddAsync(task, cancellationToken);
 
         return Result.Ok(taskId);
     }
