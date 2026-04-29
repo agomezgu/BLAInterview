@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BLAInterview.WebApi\BLAInterview.WebApi.csproj" />
+    <ProjectReference Include="..\..\src\BLAInterview.Application\BLAInterview.Application.csproj" />
+    <ProjectReference Include="..\..\src\BLAInterview.Domain\BLAInterview.Domain.csproj" />
   </ItemGroup>
 
 </Project>
