@@ -1,0 +1,50 @@
+using Npgsql;
+using Testcontainers.PostgreSql;
+using Xunit;
+
+namespace BLAInterview.Infrastructure.UnitTests.Fixtures;
+
+/// <summary>
+/// Provides a disposable PostgreSQL container and schema for infrastructure persistence specs.
+/// </summary>
+public sealed class PostgresFixture : IAsyncLifetime
+{
+    private readonly PostgreSqlContainer _container =
+        new PostgreSqlBuilder("postgres:15.1").Build();
+
+    /// <summary>
+    /// Gets the Npgsql data source connected to the running test container.
+    /// </summary>
+    public NpgsqlDataSource DataSource { get; private set; } = default!;
+
+    /// <summary>
+    /// Releases the database connection pool and stops the PostgreSQL container.
+    /// </summary>
+    public async Task DisposeAsync()
+    {
+        await DataSource.DisposeAsync();
+        await _container.DisposeAsync();
+    }
+
+    /// <summary>
+    /// Starts PostgreSQL and creates the tasks table required by repository specs.
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        await _container.StartAsync();
+
+        DataSource = NpgsqlDataSource.Create(_container.GetConnectionString());
+
+        await using var cmd = DataSource.CreateCommand("""
+            create table if not exists tasks (
+                id uuid primary key,
+                title text not null,
+                owner_id text not null,
+                created timestamp with time zone not null,
+                created_by text not null
+            );
+            """);
+
+        await cmd.ExecuteNonQueryAsync();
+    }
+}

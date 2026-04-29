@@ -1,23 +1,31 @@
+using BLAInterview.Domain.Tasks;
+using BLAInterview.Infrastructure.UnitTests.Fixtures;
 using BLAInterview.Infrastructure.Tasks;
 
 namespace BLAInterview.Infrastructure.UnitTests.Tasks;
 
-public class TaskSpecs
+/// <summary>
+/// Specifies task repository persistence behavior against the PostgreSQL fixture.
+/// </summary>
+public class TaskSpecs : IClassFixture<PostgresFixture>
 {
+    private readonly TaskRepository _taskRepository;
+
+    public TaskSpecs(PostgresFixture fixture)
+    {
+        _taskRepository = new TaskRepository(fixture.DataSource);
+    }
+
     [Fact]
-    public void Task_CreatesTask_WhenTitleAndOwnerAreProvided()
+    public async Task Task_CreatesTask_WhenTitleAndOwnerAreProvided()
     {
         // Arrange
-        var title = "Prepare interview notes";
-        var ownerId = "idp-user-123";
-
+        var taskEntity = TaskEntity.Create("Prepare interview notes", "idp-user-123");
         // Act
-        var task = TaskRepository.Create(title, ownerId);
+        var task = await _taskRepository.AddAsync(taskEntity);
 
         // Assert
-        Assert.NotNull(task);
-        Assert.Equal(title, task.Title);
-        Assert.Equal(ownerId, task.OwnerId);
+        Assert.NotEqual(Guid.Empty, task);
     }
 
     [Fact]

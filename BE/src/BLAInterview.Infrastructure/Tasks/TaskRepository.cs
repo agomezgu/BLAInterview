@@ -4,7 +4,9 @@ using Npgsql;
 
 namespace BLAInterview.Infrastructure.Tasks;
 
-
+/// <summary>
+/// Stores task entities in PostgreSQL using the configured Npgsql data source.
+/// </summary>
 public class TaskRepository : ITaskRepository
 {
     private readonly NpgsqlDataSource _dataSource;
@@ -14,10 +16,25 @@ public class TaskRepository : ITaskRepository
         _dataSource = dataSource;
     }
 
-    public async Task<Guid> CreateAsync(TaskEntity task)
+    /// <summary>
+    /// Inserts a task row into the tasks table and returns the task identifier.
+    /// </summary>
+    public async Task<Guid> AddAsync(TaskEntity task)
     {
-        throw new NotImplementedException();
+        await using var command = _dataSource.CreateCommand(
+            """
+            INSERT INTO tasks (id, title, owner_id, created, created_by)
+            VALUES ($1, $2, $3, $4, $5);
+            """);
+
+        command.Parameters.AddWithValue(task.Id);
+        command.Parameters.AddWithValue(task.Title);
+        command.Parameters.AddWithValue(task.OwnerId);
+        command.Parameters.AddWithValue(task.Created);
+        command.Parameters.AddWithValue(task.CreatedBy ?? string.Empty);
+
+        await command.ExecuteNonQueryAsync();
+
+        return task.Id;
     }
 }
-
- 
