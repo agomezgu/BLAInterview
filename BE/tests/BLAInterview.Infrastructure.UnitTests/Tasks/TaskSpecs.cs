@@ -22,10 +22,11 @@ public class TaskSpecs : IClassFixture<PostgresFixture>
         // Arrange
         var taskEntity = TaskEntity.Create("Prepare interview notes", "idp-user-123");
         // Act
-        var task = await _taskRepository.AddAsync(taskEntity);
+        var task = await _taskRepository.AddAsync(taskEntity, CancellationToken.None);
 
         // Assert
-        Assert.NotEqual(Guid.Empty, task);
+        Assert.True(task > 0);
+        Assert.Equal(task, taskEntity.Id);
     }
 
     [Fact]

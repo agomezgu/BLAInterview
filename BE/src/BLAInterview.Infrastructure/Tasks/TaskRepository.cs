@@ -1,5 +1,6 @@
+using BLAInterview.Application.Abstractions;
+using BLAInterview.Application.Tasks.Create;
 using BLAInterview.Domain.Tasks;
-using BLAInterview.Infrastructure.Abstractions;
 using Npgsql;
 
 namespace BLAInterview.Infrastructure.Tasks;
@@ -17,24 +18,31 @@ public class TaskRepository : ITaskRepository
     }
 
     /// <summary>
-    /// Inserts a task row into the tasks table and returns the task identifier.
+    /// Inserts a task row into the tasks table and returns the generated task identifier.
     /// </summary>
-    public async Task<Guid> AddAsync(TaskEntity task)
+    public async Task<int> AddAsync(TaskEntity task, CancellationToken cancellationToken)
     {
         await using var command = _dataSource.CreateCommand(
             """
-            INSERT INTO tasks (id, title, owner_id, created, created_by)
-            VALUES ($1, $2, $3, $4, $5);
+            INSERT INTO tasks (title, owner_id, created, created_by)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id;
             """);
 
-        command.Parameters.AddWithValue(task.Id);
         command.Parameters.AddWithValue(task.Title);
         command.Parameters.AddWithValue(task.OwnerId);
         command.Parameters.AddWithValue(task.Created);
         command.Parameters.AddWithValue(task.CreatedBy ?? string.Empty);
 
-        await command.ExecuteNonQueryAsync();
+        var taskId = (int)(await command.ExecuteScalarAsync(cancellationToken)
+            ?? throw new InvalidOperationException("Task insert did not return an id."));
+        task.Id = taskId;
 
-        return task.Id;
+        return taskId;
+    }
+
+    public Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(string ownerId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }
