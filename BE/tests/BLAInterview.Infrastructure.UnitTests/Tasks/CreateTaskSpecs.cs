@@ -7,11 +7,11 @@ namespace BLAInterview.Infrastructure.UnitTests.Tasks;
 /// <summary>
 /// Specifies task repository persistence behavior against the PostgreSQL fixture.
 /// </summary>
-public class TaskSpecs : IClassFixture<PostgresFixture>
+public class CreateTaskSpecs : IClassFixture<PostgresFixture>
 {
     private readonly TaskRepository _taskRepository;
 
-    public TaskSpecs(PostgresFixture fixture)
+    public CreateTaskSpecs(PostgresFixture fixture)
     {
         _taskRepository = new TaskRepository(fixture.DataSource);
     }
