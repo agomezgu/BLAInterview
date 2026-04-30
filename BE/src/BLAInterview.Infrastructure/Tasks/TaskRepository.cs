@@ -67,6 +67,31 @@ public class TaskRepository : ITaskRepository
     }
 
     /// <inheritdoc />
+    public async Task<TaskDto?> GetOwnedTaskByIdAsync(
+        int taskId,
+        string ownerId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = _dataSource.CreateCommand(
+            """
+            SELECT id, title, owner_id, created, description, priority, status
+            FROM tasks
+            WHERE id = $1 AND owner_id = $2;
+            """);
+
+        command.Parameters.AddWithValue(taskId);
+        command.Parameters.AddWithValue(ownerId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return MapRowToTaskDto(reader);
+    }
+
+    /// <inheritdoc />
     public async Task<TaskDto?> UpdateOwnedTaskAsync(
         int taskId,
         string ownerId,
@@ -102,6 +127,22 @@ public class TaskRepository : ITaskRepository
         }
 
         return MapRowToTaskDto(reader);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteOwnedTaskAsync(int taskId, string ownerId, CancellationToken cancellationToken)
+    {
+        await using var command = _dataSource.CreateCommand(
+            """
+            DELETE FROM tasks
+            WHERE id = $1 AND owner_id = $2;
+            """);
+
+        command.Parameters.AddWithValue(taskId);
+        command.Parameters.AddWithValue(ownerId);
+
+        var rows = await command.ExecuteNonQueryAsync(cancellationToken);
+        return rows > 0;
     }
 
     private static TaskDto MapRowToTaskDto(NpgsqlDataReader reader) =>

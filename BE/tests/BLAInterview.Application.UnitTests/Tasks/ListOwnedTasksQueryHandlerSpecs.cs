@@ -102,6 +102,10 @@ public class ListOwnedTasksQueryHandlerSpecs
             return Task.FromResult(ownedTasks);
         }
 
+        public Task<TaskDto?> GetOwnedTaskByIdAsync(int taskId, string ownerId, CancellationToken cancellationToken) =>
+            Task.FromResult(
+                (TaskDto?)tasks.FirstOrDefault(t => t.Id == taskId && t.OwnerId == ownerId));
+
         public Task<TaskDto?> UpdateOwnedTaskAsync(
             int taskId,
             string ownerId,
@@ -111,5 +115,8 @@ public class ListOwnedTasksQueryHandlerSpecs
             string? status,
             CancellationToken cancellationToken) =>
             throw new NotImplementedException();
+
+        public Task<bool> DeleteOwnedTaskAsync(int taskId, string ownerId, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
     }
 }

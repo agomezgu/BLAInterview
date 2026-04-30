@@ -116,6 +116,16 @@ internal static class TaskEndpointTestFactory
             }
         }
 
+        public Task<TaskDto?> GetOwnedTaskByIdAsync(int taskId, string ownerId, CancellationToken cancellationToken)
+        {
+            lock (syncRoot)
+            {
+                var found = tasks.FirstOrDefault(
+                    t => t.Id == taskId && t.OwnerId == ownerId);
+                return Task.FromResult(found);
+            }
+        }
+
         public Task<TaskDto?> UpdateOwnedTaskAsync(
             int taskId,
             string ownerId,
@@ -153,6 +163,23 @@ internal static class TaskEndpointTestFactory
             }
 
             return Task.FromResult<TaskDto?>(null);
+        }
+
+        public Task<bool> DeleteOwnedTaskAsync(int taskId, string ownerId, CancellationToken cancellationToken)
+        {
+            lock (syncRoot)
+            {
+                for (var i = 0; i < tasks.Count; i++)
+                {
+                    if (tasks[i].Id == taskId && tasks[i].OwnerId == ownerId)
+                    {
+                        tasks.RemoveAt(i);
+                        return Task.FromResult(true);
+                    }
+                }
+            }
+
+            return Task.FromResult(false);
         }
     }
 }

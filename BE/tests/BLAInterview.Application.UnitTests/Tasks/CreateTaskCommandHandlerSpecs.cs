@@ -105,6 +105,9 @@ public class CreateTaskCommandHandlerSpecs
             throw new NotImplementedException();
         }
 
+        public Task<TaskDto?> GetOwnedTaskByIdAsync(int taskId, string ownerId, CancellationToken cancellationToken) =>
+            Task.FromResult<TaskDto?>(null);
+
         public Task<TaskDto?> UpdateOwnedTaskAsync(
             int taskId,
             string ownerId,
@@ -114,5 +117,8 @@ public class CreateTaskCommandHandlerSpecs
             string? status,
             CancellationToken cancellationToken) =>
             throw new NotImplementedException();
+
+        public Task<bool> DeleteOwnedTaskAsync(int taskId, string ownerId, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
     }
 }

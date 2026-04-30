@@ -9,6 +9,11 @@ public interface ITaskRepository
     Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(string ownerId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Returns a single task if it exists and is owned by <paramref name="ownerId"/>; otherwise null.
+    /// </summary>
+    Task<TaskDto?> GetOwnedTaskByIdAsync(int taskId, string ownerId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Persists update fields for a task that exists and is owned by the user, aligned with <see cref="TaskEntity"/> (title, description, priority, status).
     /// Returns null if the task does not exist or is not owned by <paramref name="ownerId"/>.
     /// </summary>
@@ -20,4 +25,9 @@ public interface ITaskRepository
         string? priority,
         string? status,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes a task that exists and is owned by <paramref name="ownerId"/>. Returns false if no row matched.
+    /// </summary>
+    Task<bool> DeleteOwnedTaskAsync(int taskId, string ownerId, CancellationToken cancellationToken);
 }

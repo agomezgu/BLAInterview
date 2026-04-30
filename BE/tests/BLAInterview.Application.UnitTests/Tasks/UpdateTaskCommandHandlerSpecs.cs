@@ -205,6 +205,14 @@ public class UpdateTaskCommandHandlerSpecs
                     ? (IReadOnlyCollection<TaskDto>)[updateResult]
                     : Array.Empty<TaskDto>());
 
+        public Task<TaskDto?> GetOwnedTaskByIdAsync(int taskId, string ownerId, CancellationToken cancellationToken) =>
+            Task.FromResult(
+                updateResult is not null
+                && updateResult.Id == taskId
+                && string.Equals(updateResult.OwnerId, ownerId, StringComparison.Ordinal)
+                    ? updateResult
+                    : null);
+
         public Task<TaskDto?> UpdateOwnedTaskAsync(
             int taskId,
             string ownerId,
@@ -213,6 +221,9 @@ public class UpdateTaskCommandHandlerSpecs
             string? priority,
             string? status,
             CancellationToken cancellationToken) => Task.FromResult(updateResult);
+
+        public Task<bool> DeleteOwnedTaskAsync(int taskId, string ownerId, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
     }
 
     /// <summary>
@@ -232,6 +243,10 @@ public class UpdateTaskCommandHandlerSpecs
             string ownerId,
             CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyCollection<TaskDto>>(owned);
+
+        public Task<TaskDto?> GetOwnedTaskByIdAsync(int taskId, string ownerId, CancellationToken cancellationToken) =>
+            Task.FromResult(
+                (TaskDto?)owned.FirstOrDefault(t => t.Id == taskId && t.OwnerId == ownerId));
 
         public Task<TaskDto?> UpdateOwnedTaskAsync(
             int taskId,
@@ -253,5 +268,8 @@ public class UpdateTaskCommandHandlerSpecs
             return Task.FromResult(
                 (TaskDto?)owned.FirstOrDefault(t => t.Id == taskId && t.OwnerId == ownerId));
         }
+
+        public Task<bool> DeleteOwnedTaskAsync(int taskId, string ownerId, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
     }
 }
