@@ -48,6 +48,13 @@ public sealed class UpdateTaskCommandHandler(
                     .WithMetadata("Code", "TASK_NOT_FOUND"));
         }
 
-        return Result.Ok(updated);
+        var resultDto = updated with
+        {
+            Title = command.Title ?? updated.Title,
+            Description = command.Description ?? updated.Description,
+            Priority = command.Priority ?? updated.Priority,
+            Status = command.Status ?? updated.Status
+        };
+        return Result.Ok(resultDto);
     }
 }
