@@ -48,7 +48,7 @@ public class TaskRepository : ITaskRepository
     {
         await using var command = _dataSource.CreateCommand(
             """
-            SELECT id, title, owner_id, created
+            SELECT id, title, owner_id, created, description, priority, status
             FROM tasks
             WHERE owner_id = $1;
             """);
@@ -60,11 +60,7 @@ public class TaskRepository : ITaskRepository
 
         while (await reader.ReadAsync(cancellationToken))
         {
-            tasks.Add(new TaskDto(
-                reader.GetInt32(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetFieldValue<DateTimeOffset>(3)));
+            tasks.Add(MapRowToTaskDto(reader));
         }
 
         return tasks;
@@ -80,21 +76,22 @@ public class TaskRepository : ITaskRepository
         string? status,
         CancellationToken cancellationToken)
     {
-        // Description, priority, and status are validated in Application; store when the tasks table is extended.
-        _ = description;
-        _ = priority;
-        _ = status;
-
         await using var command = _dataSource.CreateCommand(
             """
             UPDATE tasks
-            SET title = COALESCE($1, title)
-            WHERE id = $2 AND owner_id = $3
-            RETURNING id, title, owner_id, created;
+            SET
+                title = COALESCE($1, title),
+                description = COALESCE($2, description),
+                priority = COALESCE($3, priority),
+                status = COALESCE($4, status)
+            WHERE id = $5 AND owner_id = $6
+            RETURNING id, title, owner_id, created, description, priority, status;
             """);
 
-        var effectiveTitle = title; // may be null for "no change" to title
-        command.Parameters.AddWithValue(effectiveTitle ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue(title ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue(description ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue(priority ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue(status ?? (object)DBNull.Value);
         command.Parameters.AddWithValue(taskId);
         command.Parameters.AddWithValue(ownerId);
 
@@ -104,10 +101,16 @@ public class TaskRepository : ITaskRepository
             return null;
         }
 
-        return new TaskDto(
+        return MapRowToTaskDto(reader);
+    }
+
+    private static TaskDto MapRowToTaskDto(NpgsqlDataReader reader) =>
+        new(
             reader.GetInt32(0),
             reader.GetString(1),
             reader.GetString(2),
-            reader.GetFieldValue<DateTimeOffset>(3));
-    }
+            reader.GetFieldValue<DateTimeOffset>(3),
+            reader.IsDBNull(4) ? null : reader.GetString(4),
+            reader.IsDBNull(5) ? null : reader.GetString(5),
+            reader.IsDBNull(6) ? null : reader.GetString(6));
 }
