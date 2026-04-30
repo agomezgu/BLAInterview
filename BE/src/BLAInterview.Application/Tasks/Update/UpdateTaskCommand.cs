@@ -1,6 +1,7 @@
 using System.Linq;
 using BLAInterview.Application.Abstractions;
 using BLAInterview.Application.Tasks.Create;
+using BLAInterview.Domain.Tasks;
 using FluentResults;
 using FluentValidation;
 
@@ -30,6 +31,25 @@ public sealed class UpdateTaskCommandHandler(
                     failure =>
                         new Error(failure.ErrorMessage)
                             .WithMetadata("Code", failure.ErrorCode)));
+        }
+
+        if (command.Status is not null)
+        {
+            var owned = await taskRepository.GetOwnedTasksAsync(command.OwnerId, cancellationToken);
+            var current = owned.FirstOrDefault(t => t.Id == command.TaskId);
+            if (current is null)
+            {
+                return Result.Fail<TaskDto>(
+                    new Error("Task not found for this user.")
+                        .WithMetadata("Code", "TASK_NOT_FOUND"));
+            }
+
+            if (!TaskEntity.IsStatusTransitionAllowed(current.Status, command.Status))
+            {
+                return Result.Fail<TaskDto>(
+                    new Error("This status change is not allowed for the current task state.")
+                        .WithMetadata("Code", "TASK_STATUS_TRANSITION_INVALID"));
+            }
         }
 
         var updated = await taskRepository.UpdateOwnedTaskAsync(

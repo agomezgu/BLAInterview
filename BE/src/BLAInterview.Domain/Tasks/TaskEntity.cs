@@ -67,6 +67,17 @@ public sealed class TaskEntity : BaseAuditableEntity
         return TransitionTo(newStatus);
     }
 
+    /// <summary>
+    /// Returns whether a transition from the current status label to <paramref name="toStatus"/> is allowed
+    /// (same rules as <see cref="TransitionTo"/> / <see cref="ApplyStatusUpdate"/>).
+    /// </summary>
+    public static bool IsStatusTransitionAllowed(string? fromStatus, string toStatus)
+    {
+        var to = new TaskStatus(toStatus);
+        TaskStatus? from = fromStatus is null ? null : new TaskStatus(fromStatus);
+        return IsTransitionAllowed(from, to);
+    }
+
     private static bool IsTransitionAllowed(TaskStatus? from, TaskStatus to)
     {
         if (from is null)

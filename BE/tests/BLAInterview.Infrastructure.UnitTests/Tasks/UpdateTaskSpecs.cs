@@ -123,21 +123,4 @@ public class UpdateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifeti
         Assert.Equal("A task", taskA.Title);
     }
 
-    [Fact(Skip = "TDD: BE-API-006 — implement; valid flow Pending -> InProgress persists")]
-    public void TaskUpdate_PersistsInProgress_WhenFromPending() { }
-
-    [Fact(Skip = "TDD: BE-API-006 — implement; valid flow Pending -> Cancelled persists")]
-    public void TaskUpdate_PersistsCancelled_WhenFromPending() { }
-
-    [Fact(Skip = "TDD: BE-API-006 — implement; valid flow InProgress -> Completed persists")]
-    public void TaskUpdate_PersistsCompleted_WhenFromInProgress() { }
-
-    [Fact(Skip = "TDD: BE-API-006 — implement; valid flow InProgress -> Cancelled persists")]
-    public void TaskUpdate_PersistsCancelled_WhenFromInProgress() { }
-
-    [Fact(Skip = "TDD: BE-API-006 — implement; system rejects disallowed flow (e.g. domain/handler) and/or does not persist it")]
-    public void TaskUpdate_DoesNotAllowOrPersist_WhenFromPendingToCompleted() { }
-
-    [Fact(Skip = "TDD: BE-API-006 — implement; another invalid transition, e.g. to unlisted label, if needed")]
-    public void TaskUpdate_DoesNotAllowOrPersist_WhenTransitionViolatesTaskLifecycle() { }
 }

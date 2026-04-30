@@ -162,6 +162,36 @@ public class UpdateTaskCommandHandlerSpecs
         Assert.Equal("TASK_STATUS_INVALID", error.Metadata["Code"]);
     }
 
+    /// <summary>
+    /// BE-API-006: status change must follow <see cref="TaskEntity"/>'s allowed transitions (e.g. not Pending to Completed);
+    /// the handler should load the current task (e.g. via <see cref="ITaskRepository.GetOwnedTasksAsync" />) and
+    /// reject with <c>TASK_STATUS_TRANSITION_INVALID</c> before a disallowed update.
+    /// </summary>
+    [Fact]
+    public async Task UpdateTaskCommandHandler_ReturnsValidationFailure_WhenStatusTransitionIsDisallowed()
+    {
+        // Arrange: persisted task is Pending; requested transition Pending -> Completed is not in the allowed set.
+        var existing = new TaskDto(1, "Title", "idp-user-123", SampleCreated, null, null, "Pending");
+        var command = new UpdateTaskCommand(
+            TaskId: 1,
+            OwnerId: "idp-user-123",
+            Title: null,
+            Description: null,
+            Priority: null,
+            Status: "Completed");
+        ICommandHandler<UpdateTaskCommand, TaskDto> handler = new UpdateTaskCommandHandler(
+            new UpdateTaskCommandValidator(),
+            new GetOwnedAndUpdateTestStub(owned: [existing], onUpdate: existing with { Status = "Completed" }));
+
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("TASK_STATUS_TRANSITION_INVALID", error.Metadata["Code"]);
+    }
+
     private sealed class UpdateTestStub(TaskDto? updateResult) : ITaskRepository
     {
         public Task<int> AddAsync(TaskEntity task, CancellationToken cancellationToken) =>
@@ -169,7 +199,11 @@ public class UpdateTaskCommandHandlerSpecs
 
         public Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(
             string ownerId,
-            CancellationToken cancellationToken) => throw new NotSupportedException();
+            CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyCollection<TaskDto>>(
+                updateResult is not null && string.Equals(updateResult.OwnerId, ownerId, StringComparison.Ordinal)
+                    ? (IReadOnlyCollection<TaskDto>)[updateResult]
+                    : Array.Empty<TaskDto>());
 
         public Task<TaskDto?> UpdateOwnedTaskAsync(
             int taskId,
@@ -179,5 +213,45 @@ public class UpdateTaskCommandHandlerSpecs
             string? priority,
             string? status,
             CancellationToken cancellationToken) => Task.FromResult(updateResult);
+    }
+
+    /// <summary>
+    /// Exposes <see cref="ITaskRepository.GetOwnedTasksAsync"/> for specs that will drive status-transition
+    /// validation in the handler, plus an optional <see cref="ITaskRepository.UpdateOwnedTaskAsync"/> return value.
+    /// </summary>
+    private sealed class GetOwnedAndUpdateTestStub(
+        IReadOnlyList<TaskDto> owned,
+        TaskDto? onUpdate) : ITaskRepository
+    {
+        public int UpdateCallCount { get; private set; }
+
+        public Task<int> AddAsync(TaskEntity task, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
+        public Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(
+            string ownerId,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyCollection<TaskDto>>(owned);
+
+        public Task<TaskDto?> UpdateOwnedTaskAsync(
+            int taskId,
+            string ownerId,
+            string? title,
+            string? description,
+            string? priority,
+            string? status,
+            CancellationToken cancellationToken)
+        {
+            UpdateCallCount++;
+            if (onUpdate is not null
+                && string.Equals(ownerId, onUpdate.OwnerId, StringComparison.Ordinal)
+                && taskId == onUpdate.Id)
+            {
+                return Task.FromResult<TaskDto?>(onUpdate);
+            }
+
+            return Task.FromResult(
+                (TaskDto?)owned.FirstOrDefault(t => t.Id == taskId && t.OwnerId == ownerId));
+        }
     }
 }
