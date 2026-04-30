@@ -1,14 +1,8 @@
 using System.Security.Claims;
-using BLAInterview.Application.Abstractions;
-using BLAInterview.Application.Tasks.Create;
-using BLAInterview.Application.Tasks.Delete;
-using BLAInterview.Application.Tasks.List;
-using BLAInterview.Application.Tasks.Update;
-using BLAInterview.Infrastructure.Tasks;
-using FluentValidation;
 using Npgsql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using BLAInterview.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 var authenticationSection = builder.Configuration.GetSection("Authentication");
@@ -45,14 +39,10 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 builder.Services.AddControllers();
-builder.Services.AddScoped<IValidator<CreateTaskCommand>, CreateTaskCommandValidator>();
-builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-builder.Services.AddScoped<ICommandHandler<CreateTaskCommand, int>, CreateTaskCommandHandler>();
-builder.Services.AddScoped<ICommandHandler<ListOwnedTasksQuery, IReadOnlyCollection<TaskDto>>, ListOwnedTasksQueryHandler>();
-builder.Services.AddScoped<ICommandHandler<GetOwnedTaskQuery, TaskDto>, GetOwnedTaskQueryHandler>();
-builder.Services.AddScoped<IValidator<UpdateTaskCommand>, UpdateTaskCommandValidator>();
-builder.Services.AddScoped<ICommandHandler<UpdateTaskCommand, TaskDto>, UpdateTaskCommandHandler>();
-builder.Services.AddScoped<ICommandHandler<DeleteTaskCommand, bool>, DeleteTaskCommandHandler>();
+ServicesRegistration.AddRepositories(builder.Services);
+ServicesRegistration.AddValidators(builder.Services);
+ServicesRegistration.AddCommandHandlers(builder.Services);
+ServicesRegistration.AddQueryHandlers(builder.Services);
 
 builder.Services.AddCors(options =>
 {
