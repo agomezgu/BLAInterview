@@ -5,6 +5,9 @@ using FluentValidation;
 
 namespace BLAInterview.Application.Tasks.Create;
 
+/// <summary>
+/// Creates a new task for the specified owner.
+/// </summary>
 public sealed record CreateTaskCommand(string Title, string OwnerId) : ICommand<int>;
 
 public sealed class CreateTaskCommandHandler(

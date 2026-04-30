@@ -5,7 +5,14 @@ namespace BLAInterview.Application.Abstractions;
 
 public interface ITaskRepository
 {
+    /// <summary>
+    /// Persists a new task entity and returns its generated identifier.
+    /// </summary>
     Task<int> AddAsync(TaskEntity task, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns all tasks owned by <paramref name="ownerId"/>.
+    /// </summary>
     Task<IReadOnlyCollection<TaskDto>> GetOwnedTasksAsync(string ownerId, CancellationToken cancellationToken);
 
     /// <summary>

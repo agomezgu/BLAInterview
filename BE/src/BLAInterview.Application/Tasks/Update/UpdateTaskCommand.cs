@@ -7,6 +7,9 @@ using FluentValidation;
 
 namespace BLAInterview.Application.Tasks.Update;
 
+/// <summary>
+/// Updates fields for a task owned by the specified owner.
+/// </summary>
 public sealed record UpdateTaskCommand(
     int TaskId,
     string OwnerId,

@@ -4,6 +4,9 @@ using FluentResults;
 
 namespace BLAInterview.Application.Tasks.List;
 
+/// <summary>
+/// Gets a single task by id, scoped to the specified owner.
+/// </summary>
 public sealed record GetOwnedTaskQuery(int TaskId, string OwnerId) : ICommand<TaskDto>;
 
 public sealed class GetOwnedTaskQueryHandler(

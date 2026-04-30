@@ -2,12 +2,18 @@ using System.Security.Cryptography;
 
 namespace BLAInterview.Idp.Data;
 
+/// <summary>
+/// Hashes and verifies passwords using PBKDF2-SHA256 with a per-password salt.
+/// </summary>
 public sealed class PasswordHasher
 {
     private const int SaltSize = 16;
     private const int HashSize = 32;
     private const int Iterations = 100_000;
 
+    /// <summary>
+    /// Hashes a password and returns a serialized representation containing algorithm, iteration count, salt, and hash.
+    /// </summary>
     public string Hash(string password)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
@@ -26,6 +32,9 @@ public sealed class PasswordHasher
             Convert.ToBase64String(hash));
     }
 
+    /// <summary>
+    /// Verifies a password against a stored hash representation.
+    /// </summary>
     public bool Verify(string password, string storedHash)
     {
         var parts = storedHash.Split('.');

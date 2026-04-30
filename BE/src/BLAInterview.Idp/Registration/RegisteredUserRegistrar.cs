@@ -4,15 +4,35 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BLAInterview.Idp.Registration;
 
+/// <summary>
+/// Result of an attempted user registration.
+/// </summary>
 public enum RegisterUserOutcome
 {
+    /// <summary>
+    /// The request is invalid (missing fields or invalid email format).
+    /// </summary>
     Invalid,
+
+    /// <summary>
+    /// The email address is already registered.
+    /// </summary>
     DuplicateEmail,
+
+    /// <summary>
+    /// The user was created successfully.
+    /// </summary>
     Created
 }
 
+/// <summary>
+/// Registers local users in the IdP database, enforcing basic validation and uniqueness constraints.
+/// </summary>
 public sealed class RegisteredUserRegistrar(IdpDbContext context, PasswordHasher passwordHasher)
 {
+    /// <summary>
+    /// Attempts to register a user and returns the outcome plus the created user id when successful.
+    /// </summary>
     public async Task<(RegisterUserOutcome Outcome, int UserId)> RegisterAsync(
         RegisterUserRequest request,
         CancellationToken cancellationToken)

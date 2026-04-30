@@ -4,8 +4,10 @@ using FluentResults;
 
 namespace BLAInterview.Application.Tasks.List;
 
+/// <summary>
+/// Lists tasks owned by the specified owner.
+/// </summary>
 public sealed record ListOwnedTasksQuery(string OwnerId) : ICommand<IReadOnlyCollection<TaskDto>>;
-
 
 public sealed class ListOwnedTasksQueryHandler(
     ITaskRepository repository)

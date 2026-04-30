@@ -3,6 +3,9 @@ using FluentResults;
 
 namespace BLAInterview.Application.Tasks.Delete;
 
+/// <summary>
+/// Deletes a task by id, scoped to the specified owner.
+/// </summary>
 public sealed record DeleteTaskCommand(int TaskId, string OwnerId) : ICommand<bool>;
 
 public sealed class DeleteTaskCommandHandler(ITaskRepository taskRepository)
