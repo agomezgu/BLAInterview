@@ -14,7 +14,7 @@ public class TaskEntityUpdateSpecs
         // Arrange
         var entity = TaskEntity.Create("T", "owner", status: new TaskStatus("Pending"));
         // Act
-        TaskEntity? afterPlannedStatusChange = null; // Red: will become a domain method that transitions status (BE-API-006).
+        TaskEntity? afterPlannedStatusChange = entity.TransitionTo(new TaskStatus("InProgress"));
         // Assert
         Assert.NotNull(afterPlannedStatusChange);
         Assert.Equal("InProgress", afterPlannedStatusChange.Status?.Value);
@@ -25,9 +25,8 @@ public class TaskEntityUpdateSpecs
     {
         // Arrange
         var entity = TaskEntity.Create("T", "owner", status: new TaskStatus("Pending"));
-        // Act
-        // (Red) invalid status is rejected on the update path, not on the existing value.
-        // Assert
-        Assert.Equal("Bogus", entity.Status?.Value);
+        // Act / Assert: invalid value fails before the entity is mutated; existing status stays valid.
+        Assert.Throws<ArgumentException>(() => entity.ApplyStatusUpdate("Bogus"));
+        Assert.Equal("Pending", entity.Status?.Value);
     }
 }
