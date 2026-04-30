@@ -41,6 +41,70 @@ public class TaskUpdateEndpointSpecs : IDisposable
     }
 
     [Fact]
+    public async Task TaskUpdateEndpoint_ReturnsUpdatedDescriptionInBody_WhenDescriptionIsUpdated()
+    {
+        // Arrange: BE-API-006; validator requires 10 < length < 50.
+        const string newDescription = "A task description in required length here.";
+        var createResponse = await this.client.PostAsJsonAsync(
+            "/tasks",
+            new CreateTaskDto("Prepare interview notes for description"));
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var taskId = createBody.GetProperty("taskId").GetInt32();
+        var update = new { description = newDescription };
+
+        // Act
+        var response = await this.client.PutAsJsonAsync($"/tasks/{taskId}", update);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(newDescription, body.GetProperty("description").GetString());
+    }
+
+    [Fact]
+    public async Task TaskUpdateEndpoint_ReturnsUpdatedPriorityInBody_WhenPriorityIsUpdated()
+    {
+        var createResponse = await this.client.PostAsJsonAsync(
+            "/tasks",
+            new CreateTaskDto("Prepare interview notes for priority"));
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var taskId = createBody.GetProperty("taskId").GetInt32();
+        const string newPriority = "High";
+        var update = new { priority = newPriority };
+
+        // Act
+        var response = await this.client.PutAsJsonAsync($"/tasks/{taskId}", update);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(newPriority, body.GetProperty("priority").GetString());
+    }
+
+    [Fact]
+    public async Task TaskUpdateEndpoint_ReturnsUpdatedStatusInBody_WhenStatusIsUpdated()
+    {
+        var createResponse = await this.client.PostAsJsonAsync(
+            "/tasks",
+            new CreateTaskDto("Prepare interview notes for status"));
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var taskId = createBody.GetProperty("taskId").GetInt32();
+        const string newStatus = "Completed";
+        var update = new { status = newStatus };
+
+        // Act
+        var response = await this.client.PutAsJsonAsync($"/tasks/{taskId}", update);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(newStatus, body.GetProperty("status").GetString());
+    }
+
+    [Fact]
     public async Task TaskUpdateEndpoint_ReturnsNotFound_WhenTaskOwnedByAnotherUser()
     {
         // Arrange

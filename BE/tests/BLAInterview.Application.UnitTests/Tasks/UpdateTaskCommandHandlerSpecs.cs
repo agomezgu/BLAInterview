@@ -39,6 +39,81 @@ public class UpdateTaskCommandHandlerSpecs
     }
 
     [Fact]
+    public async Task UpdateTaskCommandHandler_ReturnsUpdatedDescription_WhenCommandContainsDescription()
+    {
+        // Arrange: BE-API-006 / validator requires description length > 10 and < 50.
+        const string newDescription = "A task description in required length here.";
+        var command = new UpdateTaskCommand(
+            TaskId: 1,
+            OwnerId: "idp-user-123",
+            Title: null,
+            Description: newDescription,
+            Priority: null,
+            Status: null);
+        ICommandHandler<UpdateTaskCommand, TaskDto> handler = new UpdateTaskCommandHandler(
+            new UpdateTaskCommandValidator(),
+            new UpdateTestStub(
+                new TaskDto(1, "Title", "idp-user-123", SampleCreated)));
+
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(newDescription, result.Value.Description);
+    }
+
+    [Fact]
+    public async Task UpdateTaskCommandHandler_ReturnsUpdatedPriority_WhenCommandContainsPriority()
+    {
+        // Arrange
+        const string newPriority = "High";
+        var command = new UpdateTaskCommand(
+            TaskId: 1,
+            OwnerId: "idp-user-123",
+            Title: "Title",
+            Description: null,
+            Priority: newPriority,
+            Status: null);
+        ICommandHandler<UpdateTaskCommand, TaskDto> handler = new UpdateTaskCommandHandler(
+            new UpdateTaskCommandValidator(),
+            new UpdateTestStub(
+                new TaskDto(1, "Title", "idp-user-123", SampleCreated)));
+
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(newPriority, result.Value.Priority);
+    }
+
+    [Fact]
+    public async Task UpdateTaskCommandHandler_ReturnsUpdatedStatus_WhenCommandContainsStatus()
+    {
+        // Arrange
+        const string newStatus = "Completed";
+        var command = new UpdateTaskCommand(
+            TaskId: 1,
+            OwnerId: "idp-user-123",
+            Title: "Title",
+            Description: null,
+            Priority: null,
+            Status: newStatus);
+        ICommandHandler<UpdateTaskCommand, TaskDto> handler = new UpdateTaskCommandHandler(
+            new UpdateTaskCommandValidator(),
+            new UpdateTestStub(
+                new TaskDto(1, "Title", "idp-user-123", SampleCreated)));
+
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(newStatus, result.Value.Status);
+    }
+
+    [Fact]
     public async Task UpdateTaskCommandHandler_ReturnsNotFound_WhenTaskIsNotOwnedByCaller()
     {
         // Arrange

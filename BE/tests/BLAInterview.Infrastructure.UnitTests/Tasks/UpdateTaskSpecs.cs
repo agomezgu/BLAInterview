@@ -23,7 +23,7 @@ public class UpdateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifeti
     public Task InitializeAsync() => _fixture.ResetAsync();
 
     [Fact]
-    public async Task TaskRepository_PersistsUpdatedFields_WhenOwnerUpdatesTask()
+    public async Task TaskRepository_PersistsTitle_WhenOwnerUpdatesTitle()
     {
         // Arrange
         var id = await _taskRepository.AddAsync(
@@ -44,6 +44,78 @@ public class UpdateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifeti
         var tasks = await _taskRepository.GetOwnedTasksAsync("owner-1", CancellationToken.None);
         var task = Assert.Single(tasks, t => t.Id == id);
         Assert.Equal("Updated", task.Title);
+    }
+
+    [Fact]
+    public async Task TaskRepository_PersistsDescription_WhenOwnerUpdatesDescription()
+    {
+        // Arrange: description length is validated in Application (BE-API-006).
+        const string newDescription = "A task description in required length here.";
+        var id = await _taskRepository.AddAsync(
+            TaskEntity.Create("A title here", "owner-1", null),
+            CancellationToken.None);
+
+        // Act
+        var updated = await _taskRepository.UpdateOwnedTaskAsync(
+            id,
+            "owner-1",
+            null,
+            newDescription,
+            null,
+            null,
+            CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(updated);
+        Assert.Equal(newDescription, updated.Description);
+    }
+
+    [Fact]
+    public async Task TaskRepository_PersistsPriority_WhenOwnerUpdatesPriority()
+    {
+        // Arrange
+        const string newPriority = "High";
+        var id = await _taskRepository.AddAsync(
+            TaskEntity.Create("A title for priority test", "owner-1", null),
+            CancellationToken.None);
+
+        // Act
+        var updated = await _taskRepository.UpdateOwnedTaskAsync(
+            id,
+            "owner-1",
+            null,
+            null,
+            newPriority,
+            null,
+            CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(updated);
+        Assert.Equal(newPriority, updated.Priority);
+    }
+
+    [Fact]
+    public async Task TaskRepository_PersistsStatus_WhenOwnerUpdatesStatus()
+    {
+        // Arrange
+        const string newStatus = "InProgress";
+        var id = await _taskRepository.AddAsync(
+            TaskEntity.Create("A title for status test", "owner-1", null),
+            CancellationToken.None);
+
+        // Act
+        var updated = await _taskRepository.UpdateOwnedTaskAsync(
+            id,
+            "owner-1",
+            null,
+            null,
+            null,
+            newStatus,
+            CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(updated);
+        Assert.Equal(newStatus, updated.Status);
     }
 
     [Fact]
