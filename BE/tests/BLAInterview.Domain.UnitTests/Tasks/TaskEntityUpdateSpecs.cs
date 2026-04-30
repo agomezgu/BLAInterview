@@ -29,4 +29,15 @@ public class TaskEntityUpdateSpecs
         Assert.Throws<ArgumentException>(() => entity.ApplyStatusUpdate("Bogus"));
         Assert.Equal("Pending", entity.Status?.Value);
     }
+
+    [Fact]
+    public void TaskEntity_Throws_WhenStatusUpdateIsNotAllowedByTransition()
+    {
+        // Arrange: Pending -> Completed is not allowed in IsTransitionAllowed
+        var entity = TaskEntity.Create("T", "owner", status: new TaskStatus("Pending"));
+
+        // Act / Assert: transition is rejected; status is unchanged
+        Assert.Throws<InvalidOperationException>(() => entity.ApplyStatusUpdate("Completed"));
+        Assert.Equal("Pending", entity.Status?.Value);
+    }
 }

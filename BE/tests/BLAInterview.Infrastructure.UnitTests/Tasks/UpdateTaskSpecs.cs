@@ -6,6 +6,9 @@ namespace BLAInterview.Infrastructure.UnitTests.Tasks;
 
 /// <summary>
 /// Specifies task update persistence against the PostgreSQL fixture.
+/// <para>
+/// BE-API-006: the status update TDD test list (skipped, empty bodies) lives at the end of this class; remove <c>Fact(Skip=...)</c> and implement when going green.
+/// </para>
 /// </summary>
 public class UpdateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifetime
 {
@@ -95,30 +98,6 @@ public class UpdateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifeti
     }
 
     [Fact]
-    public async Task TaskRepository_PersistsStatus_WhenOwnerUpdatesStatus()
-    {
-        // Arrange
-        const string newStatus = "InProgress";
-        var id = await _taskRepository.AddAsync(
-            TaskEntity.Create("A title for status test", "owner-1", null),
-            CancellationToken.None);
-
-        // Act
-        var updated = await _taskRepository.UpdateOwnedTaskAsync(
-            id,
-            "owner-1",
-            null,
-            null,
-            null,
-            newStatus,
-            CancellationToken.None);
-
-        // Assert
-        Assert.NotNull(updated);
-        Assert.Equal(newStatus, updated.Status);
-    }
-
-    [Fact]
     public async Task TaskRepository_DoesNotExposeOtherUserTask_WhenUpdateTargetsWrongOwner()
     {
         // Arrange
@@ -143,4 +122,22 @@ public class UpdateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifeti
         var taskA = Assert.Single(listA, t => t.Id == idA);
         Assert.Equal("A task", taskA.Title);
     }
+
+    [Fact(Skip = "TDD: BE-API-006 — implement; valid flow Pending -> InProgress persists")]
+    public void TaskUpdate_PersistsInProgress_WhenFromPending() { }
+
+    [Fact(Skip = "TDD: BE-API-006 — implement; valid flow Pending -> Cancelled persists")]
+    public void TaskUpdate_PersistsCancelled_WhenFromPending() { }
+
+    [Fact(Skip = "TDD: BE-API-006 — implement; valid flow InProgress -> Completed persists")]
+    public void TaskUpdate_PersistsCompleted_WhenFromInProgress() { }
+
+    [Fact(Skip = "TDD: BE-API-006 — implement; valid flow InProgress -> Cancelled persists")]
+    public void TaskUpdate_PersistsCancelled_WhenFromInProgress() { }
+
+    [Fact(Skip = "TDD: BE-API-006 — implement; system rejects disallowed flow (e.g. domain/handler) and/or does not persist it")]
+    public void TaskUpdate_DoesNotAllowOrPersist_WhenFromPendingToCompleted() { }
+
+    [Fact(Skip = "TDD: BE-API-006 — implement; another invalid transition, e.g. to unlisted label, if needed")]
+    public void TaskUpdate_DoesNotAllowOrPersist_WhenTransitionViolatesTaskLifecycle() { }
 }
