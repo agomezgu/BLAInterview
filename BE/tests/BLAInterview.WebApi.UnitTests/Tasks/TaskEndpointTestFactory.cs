@@ -125,9 +125,6 @@ internal static class TaskEndpointTestFactory
             string? status,
             CancellationToken cancellationToken)
         {
-            _ = description;
-            _ = priority;
-            _ = status;
             lock (syncRoot)
             {
                 for (var i = 0; i < tasks.Count; i++)
@@ -137,8 +134,19 @@ internal static class TaskEndpointTestFactory
                         continue;
                     }
 
-                    var newTitle = title ?? tasks[i].Title;
-                    var updated = new TaskDto(tasks[i].Id, newTitle, tasks[i].OwnerId, tasks[i].Created);
+                    var current = tasks[i];
+                    var newTitle = title ?? current.Title;
+                    var newDescription = description ?? current.Description;
+                    var newPriority = priority ?? current.Priority;
+                    var newStatus = status ?? current.Status;
+                    var updated = new TaskDto(
+                        current.Id,
+                        newTitle,
+                        current.OwnerId,
+                        current.Created,
+                        newDescription,
+                        newPriority,
+                        newStatus);
                     tasks[i] = updated;
                     return Task.FromResult<TaskDto?>(updated);
                 }
