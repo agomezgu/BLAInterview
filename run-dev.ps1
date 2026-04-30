@@ -34,7 +34,7 @@ Start-Process powershell -ArgumentList @(
     "-NoExit", "-NoLogo", "-Command",
     "Set-Location -LiteralPath ""$repoRoot""; " +
     "Write-Host 'BLAInterview IdP' -ForegroundColor Cyan; " +
-    "dotnet run --project ""$idpFull"" --launch-profile http"
+    "dotnet run --project ""$idpFull"" --launch-profile https"
 )
 
 # REST API
@@ -42,7 +42,7 @@ Start-Process powershell -ArgumentList @(
     "-NoExit", "-NoLogo", "-Command",
     "Set-Location -LiteralPath ""$repoRoot""; " +
     "Write-Host 'BLAInterview WebApi' -ForegroundColor Cyan; " +
-    "dotnet run --project ""$webApiFull"" --launch-profile http"
+    "dotnet run --project ""$webApiFull"" --launch-profile https"
 )
 
 # Frontend (Vite; default http://localhost:5173)
