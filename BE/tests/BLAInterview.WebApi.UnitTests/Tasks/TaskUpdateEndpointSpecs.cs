@@ -1,30 +1,117 @@
-using Xunit;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using BLAInterview.Application.Tasks.Create;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace BLAInterview.WebApi.UnitTests.Tasks;
 
-public class TaskUpdateEndpointSpecs
+public class TaskUpdateEndpointSpecs : IDisposable
 {
-    [Fact]
-    public void TaskUpdateEndpoint_UpdatesEditableFields_WhenUserOwnsTask()
+    private const string AuthenticatedUserId = "idp-user-123";
+
+    private readonly WebApplicationFactory<Program> factory;
+    private readonly HttpClient client;
+
+    public TaskUpdateEndpointSpecs()
     {
-        // RED: BE-API-006-T001 not implemented yet.
+        this.factory = TaskEndpointTestFactory.Create();
+        this.client = this.factory.CreateAuthenticatedClient(AuthenticatedUserId);
     }
 
     [Fact]
-    public void TaskUpdateEndpoint_ReturnsNotFound_WhenTaskOwnedByAnotherUser()
+    public async Task TaskUpdateEndpoint_UpdatesEditableFields_WhenUserOwnsTask()
     {
-        // RED: BE-API-006-T002 not implemented yet.
+        // Arrange
+        var createResponse = await this.client.PostAsJsonAsync(
+            "/tasks",
+            new CreateTaskDto("Prepare interview notes"));
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var taskId = createBody.GetProperty("taskId").GetInt32();
+        var update = new { title = "Updated title", status = "InProgress" };
+
+        // Act
+        var response = await this.client.PutAsJsonAsync($"/tasks/{taskId}", update);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
-    public void TaskUpdateEndpoint_ReturnsValidationFailure_WhenStatusIsInvalid()
+    public async Task TaskUpdateEndpoint_ReturnsNotFound_WhenTaskOwnedByAnotherUser()
     {
-        // RED: BE-API-006-T003 not implemented yet.
+        // Arrange
+        var otherUserClient = this.factory.CreateAuthenticatedClient("idp-user-456");
+        var creationResponse = await this.client.PostAsJsonAsync(
+            "/tasks",
+            new CreateTaskDto("My task only"));
+        Assert.Equal(HttpStatusCode.Created, creationResponse.StatusCode);
+        var taskId = (await creationResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("taskId").GetInt32();
+        var update = new { title = "Hijack", status = "Pending" };
+
+        try
+        {
+            // Act
+            var response = await otherUserClient.PutAsJsonAsync($"/tasks/{taskId}", update);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+        finally
+        {
+            otherUserClient.Dispose();
+        }
     }
 
     [Fact]
-    public void TaskUpdateEndpoint_ReturnsUpdatedTaskState_WhenUpdateSucceeds()
+    public async Task TaskUpdateEndpoint_ReturnsValidationFailure_WhenStatusIsInvalid()
     {
-        // RED: BE-API-006-T004 not implemented yet.
+        // Arrange
+        var createResponse = await this.client.PostAsJsonAsync(
+            "/tasks",
+            new CreateTaskDto("Prepare interview notes"));
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var taskId = createBody.GetProperty("taskId").GetInt32();
+        var update = new { title = "T", status = "NotAValidStatus" };
+
+        // Act
+        var response = await this.client.PutAsJsonAsync($"/tasks/{taskId}", update);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("TASK_STATUS_INVALID", errors[0].GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task TaskUpdateEndpoint_ReturnsUpdatedTaskState_WhenUpdateSucceeds()
+    {
+        // Arrange
+        var createResponse = await this.client.PostAsJsonAsync(
+            "/tasks",
+            new CreateTaskDto("Original"));
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var taskId = createBody.GetProperty("taskId").GetInt32();
+        const string newTitle = "New title after update";
+        var update = new { title = newTitle, status = "Completed" };
+
+        // Act
+        var response = await this.client.PutAsJsonAsync($"/tasks/{taskId}", update);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<TaskDto>(cancellationToken: CancellationToken.None);
+        Assert.NotNull(body);
+        Assert.Equal(newTitle, body!.Title);
+        Assert.Equal(AuthenticatedUserId, body!.OwnerId);
+    }
+
+    public void Dispose()
+    {
+        this.client.Dispose();
+        this.factory.Dispose();
     }
 }

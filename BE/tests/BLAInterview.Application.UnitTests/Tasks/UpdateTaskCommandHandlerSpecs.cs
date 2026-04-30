@@ -1,24 +1,72 @@
-using Xunit;
+using BLAInterview.Application.Abstractions;
+using BLAInterview.Application.Tasks.Create;
+using BLAInterview.Application.Tasks.Update;
+using FluentValidation;
 
 namespace BLAInterview.Application.UnitTests.Tasks;
 
 public class UpdateTaskCommandHandlerSpecs
 {
     [Fact]
-    public void UpdateTaskCommandHandler_UpdatesTask_WhenCommandIsValid()
+    public async Task UpdateTaskCommandHandler_UpdatesTask_WhenCommandIsValid()
     {
-        // RED: BE-API-006-T005 not implemented yet.
+        // Arrange
+        var command = new UpdateTaskCommand(
+            TaskId: 1,
+            OwnerId: "idp-user-123",
+            Title: "Updated title",
+            Status: "InProgress");
+        IValidator<UpdateTaskCommand> validator = new UpdateTaskCommandValidator();
+        ICommandHandler<UpdateTaskCommand, TaskDto> handler = new UpdateTaskCommandHandler(validator);
+
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Updated title", result.Value.Title);
+        Assert.Equal(1, result.Value.Id);
     }
 
     [Fact]
-    public void UpdateTaskCommandHandler_ReturnsNotFound_WhenTaskIsNotOwnedByCaller()
+    public async Task UpdateTaskCommandHandler_ReturnsNotFound_WhenTaskIsNotOwnedByCaller()
     {
-        // RED: BE-API-006-T006 not implemented yet.
+        // Arrange
+        var command = new UpdateTaskCommand(
+            TaskId: 1,
+            OwnerId: "idp-user-999",
+            Title: "Title",
+            Status: "Pending");
+        ICommandHandler<UpdateTaskCommand, TaskDto> handler =
+            new UpdateTaskCommandHandler(new UpdateTaskCommandValidator());
+
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("TASK_NOT_FOUND", error.Metadata["Code"]);
     }
 
     [Fact]
-    public void UpdateTaskCommandHandler_ReturnsValidationFailure_WhenStatusIsInvalid()
+    public async Task UpdateTaskCommandHandler_ReturnsValidationFailure_WhenStatusIsInvalid()
     {
-        // RED: BE-API-006-T007 not implemented yet.
+        // Arrange
+        var command = new UpdateTaskCommand(
+            TaskId: 1,
+            OwnerId: "idp-user-123",
+            Title: "Title",
+            Status: "Bogus");
+        ICommandHandler<UpdateTaskCommand, TaskDto> handler =
+            new UpdateTaskCommandHandler(new UpdateTaskCommandValidator());
+
+        // Act
+        var result = await handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("TASK_STATUS_INVALID", error.Metadata["Code"]);
     }
 }
