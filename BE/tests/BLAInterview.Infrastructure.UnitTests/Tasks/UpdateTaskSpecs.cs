@@ -31,8 +31,16 @@ public class UpdateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifeti
             CancellationToken.None);
 
         // Act
-        // (Red) repository will expose an update path; until then, title remains the original.
+        var updated = await _taskRepository.UpdateOwnedTaskAsync(
+            id,
+            "owner-1",
+            "Updated",
+            null,
+            null,
+            null,
+            CancellationToken.None);
         // Assert
+        Assert.NotNull(updated);
         var tasks = await _taskRepository.GetOwnedTasksAsync("owner-1", CancellationToken.None);
         var task = Assert.Single(tasks, t => t.Id == id);
         Assert.Equal("Updated", task.Title);
@@ -49,10 +57,18 @@ public class UpdateTaskSpecs : IClassFixture<LocalPostgresFixture>, IAsyncLifeti
             CancellationToken.None);
 
         // Act
-        var listB = await _taskRepository.GetOwnedTasksAsync(ownerB, CancellationToken.None);
+        var crossOwnerResult = await _taskRepository.UpdateOwnedTaskAsync(
+            idA,
+            ownerB,
+            "Hijacked",
+            null,
+            null,
+            null,
+            CancellationToken.None);
         // Assert
-        Assert.DoesNotContain(idA, listB.Select(t => t.Id));
-        // Red: cross-owner update must be rejected; this placeholder fails until update ownership is implemented.
-        Assert.Empty(await _taskRepository.GetOwnedTasksAsync(ownerA, CancellationToken.None));
+        Assert.Null(crossOwnerResult);
+        var listA = await _taskRepository.GetOwnedTasksAsync(ownerA, CancellationToken.None);
+        var taskA = Assert.Single(listA, t => t.Id == idA);
+        Assert.Equal("A task", taskA.Title);
     }
 }
