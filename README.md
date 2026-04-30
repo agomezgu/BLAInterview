@@ -9,12 +9,13 @@ Monorepo for a tasks SPA (**React + Vite**), a **.NET 8 Web API** backed by **Po
 1. Install [.NET 8 SDK](https://dotnet.microsoft.com/download), [Node.js](https://nodejs.org/) (LTS), [PostgreSQL](https://www.postgresql.org/download/), and Git.
 2. Trust the ASP.NET dev HTTPS certificate: `dotnet dev-certs https --trust` (Windows/macOS).
 3. Create a PostgreSQL database and run the schema script [`init-db/001-init.sql`](init-db/001-init.sql).
-4. Point the Web API at your database (see [Configure the database](docs/configure-the-database.md)).
-5. Open **three terminals** from the repo root and run, **in this order**:
+4. Point the Web API at your database (see [Configure the database](docs/configure-the-database.md)). The repo already includes a sample `ConnectionStrings:MainDb` (with credentials) in `BE/src/BLAInterview.WebApi/appsettings*.json`—**reuse/replicate those values** locally unless you intentionally changed your PostgreSQL user/password/database name.
+5. **Shortest way to run the whole app:** from the repo root in PowerShell, run `.\run-dev.ps1` (it starts **IdP**, **Web API**, and **FE** in separate windows).
+6. If you prefer running manually, open **three terminals** from the repo root and run, **in this order**:
    - **IDP:** `dotnet run --project BE/src/BLAInterview.Idp/BLAInterview.Idp.csproj --launch-profile https`
    - **API:** `dotnet run --project BE/src/BLAInterview.WebApi/BLAInterview.WebApi.csproj --launch-profile https`
    - **FE:** `cd FE && npm install && cp .env.example .env && npm run dev`
-6. Open `http://localhost:5173`. Confirm IDP Swagger at `https://localhost:7007/swagger` and API Swagger at `https://localhost:7205/swagger`.
+7. Open `http://localhost:5173`. Confirm IDP Swagger at `https://localhost:7007/swagger` and API Swagger at `https://localhost:7205/swagger`.
 
 **What “good” looks like:** both Swaggers load without TLS errors, the SPA loads, sign-in completes, and API calls return **200** (not **403**—see [Troubleshooting](#troubleshooting)).
 
