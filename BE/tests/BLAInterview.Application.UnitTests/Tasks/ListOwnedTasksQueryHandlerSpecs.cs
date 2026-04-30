@@ -101,5 +101,15 @@ public class ListOwnedTasksQueryHandlerSpecs
 
             return Task.FromResult(ownedTasks);
         }
+
+        public Task<TaskDto?> UpdateOwnedTaskAsync(
+            int taskId,
+            string ownerId,
+            string? title,
+            string? description,
+            string? priority,
+            string? status,
+            CancellationToken cancellationToken) =>
+            throw new NotImplementedException();
     }
 }

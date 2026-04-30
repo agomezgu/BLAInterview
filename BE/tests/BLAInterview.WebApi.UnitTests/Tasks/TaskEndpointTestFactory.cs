@@ -115,5 +115,36 @@ internal static class TaskEndpointTestFactory
                 return Task.FromResult(ownedTasks);
             }
         }
+
+        public Task<TaskDto?> UpdateOwnedTaskAsync(
+            int taskId,
+            string ownerId,
+            string? title,
+            string? description,
+            string? priority,
+            string? status,
+            CancellationToken cancellationToken)
+        {
+            _ = description;
+            _ = priority;
+            _ = status;
+            lock (syncRoot)
+            {
+                for (var i = 0; i < tasks.Count; i++)
+                {
+                    if (tasks[i].Id != taskId || tasks[i].OwnerId != ownerId)
+                    {
+                        continue;
+                    }
+
+                    var newTitle = title ?? tasks[i].Title;
+                    var updated = new TaskDto(tasks[i].Id, newTitle, tasks[i].OwnerId, tasks[i].Created);
+                    tasks[i] = updated;
+                    return Task.FromResult<TaskDto?>(updated);
+                }
+            }
+
+            return Task.FromResult<TaskDto?>(null);
+        }
     }
 }

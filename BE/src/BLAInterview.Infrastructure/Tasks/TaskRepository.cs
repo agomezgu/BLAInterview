@@ -69,4 +69,45 @@ public class TaskRepository : ITaskRepository
 
         return tasks;
     }
+
+    /// <inheritdoc />
+    public async Task<TaskDto?> UpdateOwnedTaskAsync(
+        int taskId,
+        string ownerId,
+        string? title,
+        string? description,
+        string? priority,
+        string? status,
+        CancellationToken cancellationToken)
+    {
+        // Description, priority, and status are validated in Application; store when the tasks table is extended.
+        _ = description;
+        _ = priority;
+        _ = status;
+
+        await using var command = _dataSource.CreateCommand(
+            """
+            UPDATE tasks
+            SET title = COALESCE($1, title)
+            WHERE id = $2 AND owner_id = $3
+            RETURNING id, title, owner_id, created;
+            """);
+
+        var effectiveTitle = title; // may be null for "no change" to title
+        command.Parameters.AddWithValue(effectiveTitle ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue(taskId);
+        command.Parameters.AddWithValue(ownerId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new TaskDto(
+            reader.GetInt32(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetFieldValue<DateTimeOffset>(3));
+    }
 }

@@ -104,5 +104,15 @@ public class CreateTaskCommandHandlerSpecs
         {
             throw new NotImplementedException();
         }
+
+        public Task<TaskDto?> UpdateOwnedTaskAsync(
+            int taskId,
+            string ownerId,
+            string? title,
+            string? description,
+            string? priority,
+            string? status,
+            CancellationToken cancellationToken) =>
+            throw new NotImplementedException();
     }
 }

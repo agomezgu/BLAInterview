@@ -27,8 +27,10 @@ public class TaskUpdateEndpointSpecs : IDisposable
             "/tasks",
             new CreateTaskDto("Prepare interview notes"));
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
         var createBody = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
         var taskId = createBody.GetProperty("taskId").GetInt32();
+        
         var update = new { title = "Updated title", status = "InProgress" };
 
         // Act
