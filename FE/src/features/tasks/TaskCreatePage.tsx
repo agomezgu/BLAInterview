@@ -8,27 +8,19 @@ import { useAppUi } from "../../app/ui/AppUiContext";
 import { Button } from "../../components/Button";
 import { ErrorAlert } from "../../components/ErrorAlert";
 import { PageLayout } from "../../components/PageLayout";
-import { SelectField } from "../../components/SelectField";
 import { TextField } from "../../components/TextField";
 import { isMockApi } from "../../config/env";
 import { taskApi } from "../../services/taskApi";
-import { TaskPriorities, TaskStatuses } from "./constants";
 import { useAuth } from "react-oidc-context";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  priority: z.string().optional(),
-  status: z.string().optional(),
 });
 
 type Form = z.infer<typeof schema>;
 
 const defaults: Form = {
   title: "",
-  description: "",
-  priority: "",
-  status: "",
 };
 
 function OidcSessionOwner() {
@@ -54,13 +46,7 @@ export function TaskCreatePage() {
     formState: { errors },
   } = useForm<Form>({ resolver: zodResolver(schema), defaultValues: defaults });
   const m = useMutation({
-    mutationFn: (v: Form) =>
-      taskApi.createTask(token, {
-        title: v.title,
-        description: v.description || null,
-        priority: v.priority || null,
-        status: v.status || null,
-      }),
+    mutationFn: (v: Form) => taskApi.createTask(token, { title: v.title }),
     onSuccess: async (res) => {
       setFlash({ message: "Task created", variant: "info" });
       await qc.invalidateQueries({ queryKey: ["tasks"] });
@@ -80,11 +66,6 @@ export function TaskCreatePage() {
       ) : (
         <OidcSessionOwner />
       )}
-      <p className="field-hint form-note">
-        The current backend <code>POST /tasks</code> only stores <code>title</code>.
-        Other fields on this form are for UI/validation practice until the create
-        command accepts them end-to-end.
-      </p>
       <form
         onSubmit={handleSubmit((v) => m.mutate(v))}
         className="stacked-form"
@@ -95,27 +76,6 @@ export function TaskCreatePage() {
           label="Title *"
           error={errors.title?.message}
           {...register("title")}
-        />
-        <TextField
-          id="description"
-          label="Description"
-          type="text"
-          error={errors.description?.message}
-          {...register("description")}
-        />
-        <SelectField
-          id="priority"
-          label="Priority (optional)"
-          error={errors.priority?.message}
-          options={TaskPriorities.map((p) => ({ value: p, label: p }))}
-          {...register("priority")}
-        />
-        <SelectField
-          id="status"
-          label="Status (optional)"
-          error={errors.status?.message}
-          options={TaskStatuses.map((s) => ({ value: s, label: s }))}
-          {...register("status")}
         />
         {m.isError && (
           <ErrorAlert

@@ -29,10 +29,6 @@ export type Task = {
 
 export type CreateTaskPayload = {
   title: string;
-  // Optional in forms until backend extends POST /tasks:
-  description?: string | null;
-  priority?: string | null;
-  status?: string | null;
 };
 
 export type UpdateTaskPayload = {

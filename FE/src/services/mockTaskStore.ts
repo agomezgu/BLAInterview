@@ -27,10 +27,7 @@ export const mockTaskApi = {
     }
     return { ...t };
   },
-  /**
-   * Current backend contract: POST only accepts `{ title }` for real API.
-   * In mock, we also apply optional fields for a better preview.
-   */
+  /** Matches real API: POST only accepts `{ title }`. */
   async createTask(_: string | null, payload: CreateTaskPayload): Promise<{ taskId: string }> {
     const id = String(idSeq++);
     const now = new Date().toISOString();
@@ -40,9 +37,9 @@ export const mockTaskApi = {
       ownerId: "mock-user",
       created: now,
       createdBy: "mock-user",
-      description: payload.description ?? null,
-      priority: payload.priority ?? null,
-      status: payload.status ?? "Pending",
+      description: null,
+      priority: null,
+      status: null,
     };
     store.push(task);
     return { taskId: id };

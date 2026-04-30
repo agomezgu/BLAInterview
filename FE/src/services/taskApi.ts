@@ -8,13 +8,9 @@ import { parseTaskFromApi } from "./taskMappers";
 
 type CreateResponse = { taskId: number; code: string };
 
-/**
- * Real API: current backend `POST /tasks` only accepts `{ title: string }`.
- * Optional create-form fields (description, priority, status) are not sent
- * until `CreateTaskDto` / `CreateTaskCommand` are extended on the server.
- */
-function buildCreateBody(_payload: CreateTaskPayload) {
-  return { title: _payload.title };
+/** Real API: `POST /tasks` accepts `{ title: string }` only. */
+function buildCreateBody(payload: CreateTaskPayload) {
+  return { title: payload.title };
 }
 
 export const taskApi = {
