@@ -2,6 +2,32 @@
 
 Monorepo for a tasks SPA (**React + Vite**), a **.NET 8 Web API** backed by **PostgreSQL**, and a local **Duende IdentityServer** identity provider (IDP) for **OIDC/OAuth2** (Authorization Code + **PKCE**). This document is written for a range of readers: use the **TL;DR** if you only need to run the stack, skim **Architecture & production considerations** if you are reviewing the system.
 
+## Project management artifacts (requirements + user stories)
+
+This repo includes a lightweight “project management” simulation showing how requirements and user stories were captured before implementation:
+
+- **Folder**: [`Project Management/`](Project%20Management/)
+- **Requirements**: [`Project Management/requirements.md`](Project%20Management/requirements.md)
+- **User stories**: [`Project Management/user-stories.md`](Project%20Management/user-stories.md)
+
+## AI transcripts (examples of agent-assisted development)
+
+The `AI-Transcripts/` folder contains snapshots of AI-assisted sessions, including how specialized agents were used during TDD and documentation work:
+
+- **Folder**: [`AI-Transcripts/`](AI-Transcripts/)
+- **Examples**
+  - [`AI-Transcripts/01-cursor_project_setup_and_requirements_m.md`](AI-Transcripts/01-cursor_project_setup_and_requirements_m.md)
+  - [`AI-Transcripts/02_DeleteFeatureRedStatusTestsmd.md`](AI-Transcripts/02_DeleteFeatureRedStatusTestsmd.md)
+  - [`AI-Transcripts/03_DeleteFeatureRedStatusTestsInitialCode.md`](AI-Transcripts/03_DeleteFeatureRedStatusTestsInitialCode.md)
+  - [`AI-Transcripts/04_DeleteFeatureRedToGreenStatus.md`](AI-Transcripts/04_DeleteFeatureRedToGreenStatus.md)
+
+## Custom agents and rules added to the project
+
+Cursor configuration used in this repo lives under `.cursor/`, including the custom agents and rule files used to guide coding style and TDD workflow:
+
+- **Agents**: [`.cursor/agents/`](.cursor/agents/)
+- **Rules**: [`.cursor/rules/`](.cursor/rules/)
+
 ---
 
 ## TL;DR (about five minutes)
