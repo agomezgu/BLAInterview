@@ -67,7 +67,7 @@ Apply these constraints in particular:
 5. Scaffold failing tests.
    - Create or update the approved test files.
    - Add only the approved test methods.
-   - Use explicit failing placeholders so the Red state is visible.
+   - Use documented Red placeholders so the intended Red work is visible.
    - Keep method names based on `subject -> behavior -> scenario`, not on unique test codes.
 
 6. Stop after Red.
@@ -95,25 +95,25 @@ Critical Assumptions / Questions:
 Do you want to proceed with the Tests Creation?  (Y/N)
 ```
 
-## Failing Placeholder Pattern
+## Red Placeholder Pattern
 
-Use a placeholder that fails for the expected Red reason:
+Use a documented placeholder comment for the expected Red reason:
 
 ```csharp
 [Fact]
 public void CreateInterviewCommandHandler_CreatesInterview_WhenCandidateAndJobExist()
 {
-    Assert.Fail("RED: US001-T001 not implemented yet.");
+    // RED: US001-T001 not implemented yet.
 }
 ```
 
-The unique code may appear in the placeholder message for traceability, but it must not appear in the method name.
+The unique code must appear in the placeholder comment for traceability, but it must not appear in the method name.
 
 ## Completion Criteria
 
 - The user approved the Red Test Proposal before any test files were changed.
 - Every approved test has a unique code in the confirmation list.
 - Every generated test method name follows `.cursor/rules/backend-tdd.mdc`.
-- Every scaffolded test fails explicitly for the Red reason.
+- Every scaffolded test includes the documented Red placeholder comment.
 - No production code was created or modified.
 - Test scope respects `.cursor/rules/backend-api-clean-architecture.mdc`.
