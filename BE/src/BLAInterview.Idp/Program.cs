@@ -1,24 +1,29 @@
-using BLAInterview.Idp.Config;
 using BLAInterview.Idp.Authentication;
+using BLAInterview.Idp.Config;
 using BLAInterview.Idp.Data;
 using BLAInterview.Idp.Registration;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Microsoft.EntityFrameworkCore;
-using System.Net.Mail;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
 builder.Services.AddAuthorization();
 builder.Services.AddDbContext<IdpDbContext>(options =>
     options.UseInMemoryDatabase("BLAInterviewIdp"));
 
+
 builder.Services
-    .AddIdentityServer()
+    .AddIdentityServer(options =>
+    {
+        options.KeyManagement.Enabled = false;
+        options.UserInteraction.LoginUrl = "/Account/Login";
+        options.UserInteraction.LogoutUrl = "/Account/Logout";
+        options.UserInteraction.ErrorUrl = "/home/error";
+    })
     .AddResourceOwnerValidator<RegisteredUserPasswordValidator>()
+    .AddProfileService<RegisteredUserProfileService>()
     .AddConfigurationStore(options =>
     {
         options.ConfigureDbContext = db =>
@@ -32,6 +37,16 @@ builder.Services
     .AddDeveloperSigningCredential();
 
 builder.Services.AddSingleton<PasswordHasher>();
+builder.Services.AddScoped<RegisteredUserRegistrar>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -49,54 +64,43 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseIdentityServer();
 app.UseAuthorization();
-
 app.MapControllers();
+
 
 app.MapPost("/connect/register", async (
     RegisterUserRequest request,
-    IdpDbContext context,
-    PasswordHasher passwordHasher,
+    RegisteredUserRegistrar registrar,
     CancellationToken cancellationToken) =>
 {
-    if (string.IsNullOrWhiteSpace(request.Name)
-        || string.IsNullOrWhiteSpace(request.Email)
-        || string.IsNullOrWhiteSpace(request.Password)
-        || !IsEmailAddress(request.Email))
+    var (outcome, userId) = await registrar.RegisterAsync(request, cancellationToken);
+    return outcome switch
     {
-        return Results.BadRequest();
-    }
-
-    var normalizedEmail = request.Email.Trim().ToUpperInvariant();
-    if (await context.Users.AnyAsync(user => user.NormalizedEmail == normalizedEmail, cancellationToken))
-    {
-        return Results.Conflict();
-    }
-
-    var user = new RegisteredUser
-    {
-        Name = request.Name.Trim(),
-        Email = request.Email.Trim(),
-        NormalizedEmail = normalizedEmail,
-        PasswordHash = passwordHasher.Hash(request.Password),
-        CreatedAt = DateTimeOffset.UtcNow
+        RegisterUserOutcome.Created => Results.Created($"/connect/users/{userId}", new { userId }),
+        RegisterUserOutcome.DuplicateEmail => Results.Conflict(),
+        _ => Results.BadRequest()
     };
 
-    context.Users.Add(user);
-    await context.SaveChangesAsync(cancellationToken);
-
-    return Results.Created($"/connect/users/{user.Id}", new { userId = user.Id });
 });
 
+
+
 app.Run();
+
+
 
 static void SeedIdentityServerConfiguration(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
 
+    if (!context.IdentityResources.Any())
+    {
+        context.IdentityResources.AddRange(Config.IdentityResources.Select(r => r.ToEntity()));
+    }
     if (!context.ApiResources.Any())
     {
         context.ApiResources.AddRange(Config.ApiResources.Select(apiResource => apiResource.ToEntity()));
@@ -105,6 +109,7 @@ static void SeedIdentityServerConfiguration(WebApplication app)
     if (!context.ApiScopes.Any())
     {
         context.ApiScopes.AddRange(Config.ApiScopes.Select(apiScope => apiScope.ToEntity()));
+
     }
 
     if (!context.Clients.Any())
@@ -115,17 +120,6 @@ static void SeedIdentityServerConfiguration(WebApplication app)
     context.SaveChanges();
 }
 
-static bool IsEmailAddress(string email)
-{
-    try
-    {
-        _ = new MailAddress(email);
-        return true;
-    }
-    catch (FormatException)
-    {
-        return false;
-    }
-}
 
 public partial class Program;
+

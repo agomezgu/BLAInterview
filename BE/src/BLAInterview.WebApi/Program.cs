@@ -53,6 +53,18 @@ builder.Services.AddScoped<ICommandHandler<GetOwnedTaskQuery, TaskDto>, GetOwned
 builder.Services.AddScoped<IValidator<UpdateTaskCommand>, UpdateTaskCommandValidator>();
 builder.Services.AddScoped<ICommandHandler<UpdateTaskCommand, TaskDto>, UpdateTaskCommandHandler>();
 builder.Services.AddScoped<ICommandHandler<DeleteTaskCommand, bool>, DeleteTaskCommandHandler>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -70,7 +82,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseCors("AllowAll");
 app.MapGet("/health", () => Results.Ok()).AllowAnonymous();
 app.MapControllers();
 
